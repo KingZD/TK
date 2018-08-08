@@ -55,6 +55,7 @@ public class TkView extends View {
         drawTK(canvas);
     }
 
+    //画TK
     private void drawTK(Canvas canvas) {
         float tkLineWidth = mModel.getTkLineWidth();
         float tkHeight = mModel.getTkHeight() - tkLineWidth * 2;
@@ -66,38 +67,34 @@ public class TkView extends View {
         mPaint.setStyle(Paint.Style.STROKE);
         //整个大炮的占位
         Path tk = new Path();
-//        tk.moveTo(tkLineWidth + tkCenterX, height - tkHeight - tkLineWidth - tkCenterY);
-//        tk.lineTo(tkWidth + tkLineWidth + tkCenterX, height - tkHeight - tkLineWidth - tkCenterY);
-//        tk.lineTo(tkWidth + tkLineWidth + tkCenterX, height - tkLineWidth - tkCenterY);
-//        tk.lineTo(tkLineWidth + tkCenterX, height - tkLineWidth - tkCenterY);
-//        tk.lineTo(tkLineWidth + tkCenterX, height - tkHeight - tkLineWidth - tkCenterY);
-
         //炮身
         float bHeight = tkHeight - tkHeight * mModel.getTkHBScale();
         Path bPath = new Path();
-        bPath.moveTo(tkLineWidth + tkCenterX, height - bHeight - tkLineWidth - tkCenterY);
-        bPath.lineTo(tkWidth + tkLineWidth + tkCenterX, height - bHeight - tkLineWidth - tkCenterY);
-        bPath.lineTo(tkWidth + tkLineWidth + tkCenterX, height - tkLineWidth - tkCenterY);
-        bPath.lineTo(tkLineWidth + tkCenterX, height - tkLineWidth - tkCenterY);
-        bPath.lineTo(tkLineWidth + tkCenterX, height - bHeight - tkLineWidth - tkCenterY);
+        bPath.moveTo(tkCenterX, height - bHeight - tkCenterY);
+        bPath.lineTo(tkWidth + tkCenterX, height - bHeight - tkCenterY);
+        bPath.lineTo(tkWidth + tkCenterX, height - tkCenterY);
+        bPath.lineTo(tkCenterX, height - tkCenterY);
+        bPath.lineTo(tkCenterX, height - bHeight - tkCenterY);
         tk.addPath(bPath);
 
         //炮头
         float hHeight = tkHeight * mModel.getTkHBScale() + bHeight / 2;
         float xWidth = (tkWidth - tkLineWidth) / 2;
         Path hPath = new Path();
-        hPath.moveTo(xWidth + tkLineWidth + tkCenterX, height - tkHeight - tkLineWidth - tkCenterY);
-        hPath.lineTo(xWidth + tkLineWidth + tkCenterX, height - tkHeight - tkLineWidth - tkCenterY);
-        hPath.lineTo(xWidth + tkLineWidth + tkCenterX, height - tkHeight - tkLineWidth - tkCenterY);
-        hPath.lineTo(xWidth + tkLineWidth + tkCenterX, height - tkHeight + hHeight - tkLineWidth - tkCenterY);
+        hPath.moveTo(xWidth + tkLineWidth + tkCenterX, height - tkHeight - tkCenterY);
+        hPath.lineTo(xWidth + tkLineWidth + tkCenterX, height - tkHeight + hHeight - tkCenterY);
         tk.addPath(hPath);
         //坦克原型盖子
-        tk.addCircle(tkWidth / 2 + tkLineWidth / 2 + tkCenterX, height - bHeight / 2 - tkCenterY, tkWidth / 4, Path.Direction.CCW);
+        tk.addCircle(tkWidth / 2 + tkCenterX, height - bHeight / 2 - tkCenterY, tkWidth / 4, Path.Direction.CCW);
 
-        //第二种方法绘制圆角矩形
+        //画轮子
         tk.moveTo(tkWidth + tkCenterX, height - tkCenterY);
-        tk.quadTo(tkWidth + tkCenterX + 40, height - tkCenterY - bHeight + 20, tkWidth + tkCenterX, height - tkCenterY - bHeight);
+        tk.quadTo(tkWidth + tkCenterX + tkLineWidth * 4, height - tkCenterY - bHeight / 2, tkWidth + tkCenterX, height - tkCenterY - bHeight);
         canvas.drawPath(tk, mPaint);
+    }
+
+    //画子弹
+    public void drawBullet(Canvas canvas){
     }
 
     //创建TK开始
