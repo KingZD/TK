@@ -38,6 +38,10 @@ public class TkModel {
     private int tkColor = -1;
     //玩家1p 2p是根据当前创建游戏人来决定，创建者为1p
     private Player player = Player.ONE;
+    //记录坦克跑口的关键点坐标，方便子弹的绘制
+    private float tkBulletX, tkBulletY;
+    //最大同時存在子彈數目
+    private int maxBulletCount = 5;
 
     public TkModel(TKDirect direct, int tkBallMoveSpeed, float tkWidth, float tkHeight, float tkHBScale, float tkCenterX, float tkCenterY, int tkLineWidth, int tkColor, Player player) {
         this.direct = direct;
@@ -154,5 +158,29 @@ public class TkModel {
 
     public void setPauseGame(boolean pauseGame) {
         this.pauseGame = pauseGame;
+    }
+
+    public float getTkBulletX() {
+        return tkBulletX;
+    }
+
+    public void setTkBulletX(float tkBulletX) {
+        this.tkBulletX = tkBulletX;
+    }
+
+    public float getTkBulletY() {
+        return tkBulletY;
+    }
+
+    public void setTkBulletY(float tkBulletY) {
+        this.tkBulletY = tkBulletY;
+    }
+
+    public int getMaxBulletCount() {
+        return maxBulletCount;
+    }
+
+    public void setMaxBulletCount(int maxBulletCount) {
+        this.maxBulletCount = maxBulletCount;
     }
 }

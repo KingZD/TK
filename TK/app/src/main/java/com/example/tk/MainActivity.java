@@ -22,7 +22,7 @@ public class MainActivity extends BaseActivity {
     }
 
     public void start(View view) {
-        TkModel model = new TkModel(TkModel.TKDirect.TOP, 5, 160, 240, 0.2f, 100, 100, 5, R.color.colorAccent, TkModel.Player.ONE);
+        TkModel model = new TkModel(TkModel.TKDirect.RIGHT, 5, 160, 240, 0.2f, 0, 0, 5, R.color.colorAccent, TkModel.Player.ONE);
         tkView.createTkAndStart(model);
     }
 }
