@@ -11,8 +11,8 @@ public class TkModel {
     }
 
     public enum Player {
-        //玩家一 玩家二
-        ONE, TWO
+        //玩家一 玩家二 电脑
+        ONE, TWO, NPC
     }
 
     //定义坦克行驶方向和子弹弹射方向

@@ -15,9 +15,13 @@ import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.View;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TkView extends View {
     //TK模型
     TkModel mModel;
+    List<TkModel> npcModels;
     //布局宽高
     int gameHeight = 0;
     int gameWidth = 0;
@@ -44,6 +48,13 @@ public class TkView extends View {
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
         mPaint.setTextSize(1);
+        npcModels = new ArrayList<>();
+        TkModel modelRight = new TkModel(TkModel.TKDirect.RIGHT, 5, 160, 240, 0.2f, 0, 0, 5, R.color.colorPrimary, TkModel.Player.NPC);
+        TkModel modelLeft = new TkModel(TkModel.TKDirect.LEFT, 5, 160, 240, 0.2f, 0, 0, 5, R.color.colorPrimary, TkModel.Player.NPC);
+        TkModel modelBottom = new TkModel(TkModel.TKDirect.BOTTOM, 5, 160, 240, 0.2f, 0, 0, 5, R.color.colorPrimary, TkModel.Player.NPC);
+        npcModels.add(modelRight);
+        npcModels.add(modelLeft);
+        npcModels.add(modelBottom);
     }
 
     @Override
@@ -61,8 +72,8 @@ public class TkView extends View {
         //暂停游戏
         if (mModel.isPauseGame()) return;
         canvas.clipRect(getPaddingLeft(), getPaddingTop(), getWidth() - getPaddingRight(), gameHeight - getPaddingBottom());
-        drawTK(canvas);
-
+        drawTopTK(canvas);
+        drawRightTK(canvas);
     }
 
     @SuppressLint("HandlerLeak")
@@ -78,14 +89,15 @@ public class TkView extends View {
     };
 
     //画TK(TOP)
-    private void drawTK(Canvas canvas) {
+    private void drawTopTK(Canvas canvas) {
         mModel.setPhoneHeight(gameHeight);
         mModel.setPhoneWidth(gameWidth);
         float tkLineWidth = mModel.getTkLineWidth();
         float tkHeight = mModel.getTkHeight() - tkLineWidth * 2;
         float tkWidth = mModel.getTkWidth() - tkLineWidth * 2;
         float tkCenterX = mModel.getTkCenterX() + tkWidth / 2;
-        tkCenterX = tkCenterX > gameWidth ? (gameWidth - tkWidth / 2) : tkCenterX;
+        //因为初始的时候中心点应该为 tkWidth / 2
+        tkCenterX = (tkCenterX + tkWidth / 2) > gameWidth ? (gameWidth - tkWidth / 2) : tkCenterX;
         float tkCenterY = gameHeight - mModel.getTkCenterY() - tkHeight / 2;
         tkCenterY = tkCenterY < 0 ? (tkHeight / 2) : tkCenterY;
         mPaint.setColor(getColor(mModel.getTkColor()));
@@ -114,17 +126,119 @@ public class TkView extends View {
         //坦克原型盖子
         tk.addCircle(tkCenterX, tkCenterY + tkHeight / 2 - bHeight / 2, tkWidth / 4, Path.Direction.CCW);
 
-        //画轮子
+        //画左轮子
+        tk.moveTo(tkCenterX - tkWidth / 2, tkCenterY + tkHeight / 2);
+        tk.quadTo(tkCenterX - tkWidth / 2 + tkLineWidth * 4, tkCenterY, tkCenterX - tkWidth / 2, tkCenterY + tkHeight / 2 - bHeight);
+
+        //画右轮子
         tk.moveTo(tkCenterX + tkWidth / 2, tkCenterY + tkHeight / 2);
-        tk.quadTo(tkCenterX + tkLineWidth * 4 + tkWidth / 2, tkCenterY, tkWidth / 2 + tkCenterX, tkCenterY + tkHeight / 2 - bHeight);
+        tk.quadTo(tkCenterX - tkLineWidth * 4 + tkWidth / 2, tkCenterY, tkWidth / 2 + tkCenterX, tkCenterY + tkHeight / 2 - bHeight);
         canvas.drawPath(tk, mPaint);
 
         //记录炮口的位置
         mModel.setTkBulletX(tkCenterX);
         mModel.setTkBulletY(tkCenterY - tkHeight / 2);
-
         //子弹
         drawBullet(canvas);
+    }
+
+    //画TK(Right)
+    private void drawRightTK(Canvas canvas) {
+        TkModel mModel = npcModels.get(0);
+        mModel.setPhoneHeight(gameHeight);
+        mModel.setPhoneWidth(gameWidth);
+        float tkLineWidth = mModel.getTkLineWidth();
+        float tkHeight = mModel.getTkHeight() - tkLineWidth * 2;
+        float tkWidth = mModel.getTkWidth() - tkLineWidth * 2;
+        float tkCenterX = mModel.getTkCenterX() + tkWidth / 2;
+        tkCenterX = tkCenterX > gameWidth ? (gameWidth - tkWidth / 2) : tkCenterX;
+        float tkCenterY = gameHeight - mModel.getTkCenterY() - tkHeight / 2;
+        tkCenterY = tkCenterY < 0 ? (tkHeight / 2) : tkCenterY;
+        mPaint.setColor(getColor(mModel.getTkColor()));
+        mPaint.setStrokeWidth(tkLineWidth);
+        mPaint.setStyle(Paint.Style.STROKE);
+
+        //整个大炮的占位
+        Path tk = new Path();
+
+        //炮身
+        float bHeight = tkHeight - tkHeight * mModel.getTkHBScale();
+        Path bPath = new Path();
+        bPath.moveTo(tkCenterX - tkWidth / 2, tkCenterY + tkHeight / 2);
+        bPath.lineTo(tkCenterX - tkWidth / 2 + bHeight, tkCenterY + tkHeight / 2);
+        bPath.lineTo(tkCenterX - tkWidth / 2 + bHeight, tkCenterY + tkHeight / 2 - tkWidth);
+        bPath.lineTo(tkCenterX - tkWidth / 2, tkCenterY + tkHeight / 2 - tkWidth);
+        bPath.lineTo(tkCenterX - tkWidth / 2, tkCenterY + tkHeight / 2);
+        tk.addPath(bPath);
+
+        //炮头
+        Path hPath = new Path();
+        hPath.moveTo(tkCenterX - tkWidth / 2 + bHeight / 2, tkCenterY + tkHeight / 2 - tkWidth / 2);
+        hPath.lineTo(tkCenterX - tkWidth / 2 + tkHeight, tkCenterY + tkHeight / 2 - tkWidth / 2);
+        tk.addPath(hPath);
+
+        //坦克原型盖子
+        tk.addCircle(tkCenterX - tkWidth / 2 + bHeight / 2, tkCenterY + tkHeight / 2 - tkWidth / 2, tkWidth / 4, Path.Direction.CCW);
+        //画上轮子
+        tk.moveTo(tkCenterX - tkWidth / 2, tkCenterY + tkHeight / 2 - tkWidth);
+        tk.quadTo(tkCenterX - tkWidth / 2 + bHeight / 2, tkCenterY + tkHeight / 2 - tkWidth + tkLineWidth * 4, bHeight + tkCenterX - tkWidth / 2, tkCenterY + tkHeight / 2 - tkWidth);
+        //画下轮子
+        tk.moveTo(tkCenterX - tkWidth / 2, tkCenterY + tkHeight / 2);
+        tk.quadTo(tkCenterX - tkWidth / 2 + bHeight / 2, tkCenterY - tkLineWidth * 4 + tkHeight / 2, bHeight + tkCenterX - tkWidth / 2, tkCenterY + tkHeight / 2);
+        canvas.drawPath(tk, mPaint);
+
+        //记录炮口的位置
+        mModel.setTkBulletX(tkCenterX);
+        mModel.setTkBulletY(tkCenterY - tkHeight / 2);
+    }
+
+    private void drawLeftTK(Canvas canvas) {
+        TkModel mModel = npcModels.get(0);
+        mModel.setPhoneHeight(gameHeight);
+        mModel.setPhoneWidth(gameWidth);
+        float tkLineWidth = mModel.getTkLineWidth();
+        float tkHeight = mModel.getTkHeight() - tkLineWidth * 2;
+        float tkWidth = mModel.getTkWidth() - tkLineWidth * 2;
+        float tkCenterX = mModel.getTkCenterX() + tkWidth / 2;
+        tkCenterX = tkCenterX > gameWidth ? (gameWidth - tkWidth / 2) : tkCenterX;
+        float tkCenterY = gameHeight - mModel.getTkCenterY() - tkHeight / 2;
+        tkCenterY = tkCenterY < 0 ? (tkHeight / 2) : tkCenterY;
+        mPaint.setColor(getColor(mModel.getTkColor()));
+        mPaint.setStrokeWidth(tkLineWidth);
+        mPaint.setStyle(Paint.Style.STROKE);
+
+        //整个大炮的占位
+        Path tk = new Path();
+
+        //炮身
+        float bHeight = tkHeight - tkHeight * mModel.getTkHBScale();
+        Path bPath = new Path();
+        bPath.moveTo(tkCenterX - tkWidth / 2, tkCenterY + tkHeight / 2);
+        bPath.lineTo(tkCenterX - tkWidth / 2 + bHeight, tkCenterY + tkHeight / 2);
+        bPath.lineTo(tkCenterX - tkWidth / 2 + bHeight, tkCenterY + tkHeight / 2 - tkWidth);
+        bPath.lineTo(tkCenterX - tkWidth / 2, tkCenterY + tkHeight / 2 - tkWidth);
+        bPath.lineTo(tkCenterX - tkWidth / 2, tkCenterY + tkHeight / 2);
+        tk.addPath(bPath);
+
+        //炮头
+        Path hPath = new Path();
+        hPath.moveTo(tkCenterX - tkWidth / 2 + bHeight / 2, tkCenterY + tkHeight / 2 - tkWidth / 2);
+        hPath.lineTo(tkCenterX - tkWidth / 2 + tkHeight, tkCenterY + tkHeight / 2 - tkWidth / 2);
+        tk.addPath(hPath);
+
+        //坦克原型盖子
+        tk.addCircle(tkCenterX - tkWidth / 2 + bHeight / 2, tkCenterY + tkHeight / 2 - tkWidth / 2, tkWidth / 4, Path.Direction.CCW);
+        //画上轮子
+        tk.moveTo(tkCenterX - tkWidth / 2, tkCenterY + tkHeight / 2 - tkWidth);
+        tk.quadTo(tkCenterX - tkWidth / 2 + bHeight / 2, tkCenterY + tkHeight / 2 - tkWidth + tkLineWidth * 4, bHeight + tkCenterX - tkWidth / 2, tkCenterY + tkHeight / 2 - tkWidth);
+        //画下轮子
+        tk.moveTo(tkCenterX - tkWidth / 2, tkCenterY + tkHeight / 2);
+        tk.quadTo(tkCenterX - tkWidth / 2 + bHeight / 2, tkCenterY - tkLineWidth * 4 + tkHeight / 2, bHeight + tkCenterX - tkWidth / 2, tkCenterY + tkHeight / 2);
+        canvas.drawPath(tk, mPaint);
+
+        //记录炮口的位置
+        mModel.setTkBulletX(tkCenterX);
+        mModel.setTkBulletY(tkCenterY - tkHeight / 2);
     }
 
     //画子弹
