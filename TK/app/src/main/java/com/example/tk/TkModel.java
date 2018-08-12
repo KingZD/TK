@@ -1,5 +1,8 @@
 package com.example.tk;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * 定义坦克模型
  */
@@ -37,7 +40,11 @@ public class TkModel {
     //记录坦克跑口的关键点坐标，方便子弹的绘制
     private float tkBulletX, tkBulletY;
     //最大同時存在子彈數目
-    private int maxBulletCount = 5;
+    private int maxBulletCount = 10;
+    //分数
+    private int score = 0;
+    //记录发出去的子弹
+    private List<BullectModel> bullects;
 
     public TkModel(TKDirect direct, int tkBallMoveSpeed, float tkWidth, float tkHeight, float tkHBScale, float tkCenterX, float tkCenterY, int tkLineWidth, int tkColor, Player player) {
         this.direct = direct;
@@ -178,5 +185,21 @@ public class TkModel {
 
     public void setMaxBulletCount(int maxBulletCount) {
         this.maxBulletCount = maxBulletCount;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
+    }
+
+    public List<BullectModel> getBullects() {
+        return bullects;
+    }
+
+    public void setBullects(List<BullectModel> bullects) {
+        this.bullects = bullects;
     }
 }

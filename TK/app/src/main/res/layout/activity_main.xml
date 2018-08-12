@@ -18,7 +18,36 @@
         android:layout_width="140dp"
         android:layout_height="140dp"
         android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp"
+        android:layout_marginStart="20dp"
         app:mNormalColor="@color/colorPrimaryDark"
         app:mPressColor="@color/colorPrimary" />
 
+    <Button
+        android:id="@+id/btSend"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginBottom="50dp"
+        android:layout_marginEnd="50dp"
+        android:background="@drawable/direct_bottom"
+        android:text="A"
+        android:textSize="28dp" />
+
+    <Button
+        android:id="@+id/btReset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:text="重开" />
+
+    <Button
+        android:id="@+id/btStart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toStartOf="@+id/btReset"
+        android:text="开始" />
 </RelativeLayout>

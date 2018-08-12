@@ -28,7 +28,7 @@ public class TkBaseView extends View {
     protected int gameWidth = 0;
     private Paint mPaint;
     //子彈閒的空格
-    private int bulletSpace = 10;
+    protected int bulletSpace = 10;
     private Canvas mCanvas;
 
     public TkBaseView(Context context) {
@@ -153,11 +153,9 @@ public class TkBaseView extends View {
         //记录炮口的位置
         mModel.setTkBulletX(tkCenterX);
         mModel.setTkBulletY(tkCenterY - tkHeight / 2);
-        //子弹
-        drawBullet(mModel);
     }
 
-    //画TK(TOP)
+    //画TK(Bottom)
     private void drawBottomTK(TkModel mModel) {
         mModel.setPhoneHeight(gameHeight);
         mModel.setPhoneWidth(gameWidth);
@@ -206,8 +204,6 @@ public class TkBaseView extends View {
         //记录炮口的位置
         mModel.setTkBulletX(tkCenterX);
         mModel.setTkBulletY(tkCenterY - tkHeight / 2);
-        //子弹
-        drawBullet(mModel);
     }
 
     //画TK(Right)
