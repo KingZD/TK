@@ -8,50 +8,17 @@
 
     <com.example.tk.TkView
         android:id="@+id/tkView"
-        android:layout_width="match_parent"
+        android:layout_width="200dp"
         android:layout_height="match_parent"
-        android:layout_marginLeft="200dp"
-        android:layout_marginRight="200dp"
-        android:background="@color/colorPrimary" />
+        android:layout_centerInParent="true"
+        android:background="@color/white" />
 
     <com.example.tk.DirectButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:direct="LEFT"
-        app:mBackground="@drawable/ic_circle_bottom_normal" />
+        android:id="@+id/btDirect"
+        android:layout_width="140dp"
+        android:layout_height="140dp"
+        android:layout_alignParentBottom="true"
+        app:mNormalColor="@color/colorPrimaryDark"
+        app:mPressColor="@color/colorPrimary" />
 
-    <!--<Button-->
-    <!--android:id="@+id/btUp"-->
-    <!--android:layout_width="80dp"-->
-    <!--android:layout_height="80dp"-->
-    <!--android:layout_alignTop="@+id/btDown"-->
-    <!--android:background="@drawable/ic_circle_bottom_normal"-->
-    <!--android:onClick="start"-->
-    <!--android:text="UP" />-->
-
-    <!--<Button-->
-    <!--android:id="@+id/btDown"-->
-    <!--android:layout_width="80dp"-->
-    <!--android:layout_height="80dp"-->
-    <!--android:background="@drawable/ic_circle_bottom_normal"-->
-    <!--android:onClick="start"-->
-    <!--android:text="DOWN" />-->
-
-    <!--<Button-->
-    <!--android:id="@+id/btLeft"-->
-    <!--android:layout_width="80dp"-->
-    <!--android:layout_height="80dp"-->
-    <!--android:layout_alignParentStart="true"-->
-    <!--android:background="@drawable/ic_circle_bottom_normal"-->
-    <!--android:onClick="start"-->
-    <!--android:text="LEFT" />-->
-
-    <!--<Button-->
-    <!--android:id="@+id/btRight"-->
-    <!--android:layout_width="80dp"-->
-    <!--android:layout_height="80dp"-->
-    <!--android:layout_toRightOf="@+id/btLeft"-->
-    <!--android:background="@drawable/ic_circle_bottom_normal"-->
-    <!--android:onClick="start"-->
-    <!--android:text="RIGHT" />-->
 </RelativeLayout>

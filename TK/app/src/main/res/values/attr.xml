@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="DirectButton">
-        <attr name="mBackground" format="color" />
-        <attr name="direct" format="enum">
-            <enum name="UP" value="0" />
-            <enum name="LEFT" value="1" />
-            <enum name="RIGHT" value="2" />
-            <enum name="DOWN" value="3" />
-        </attr>
+        <attr name="mPressColor" format="color" />
+        <attr name="mNormalColor" format="color" />
     </declare-styleable>
 </resources>

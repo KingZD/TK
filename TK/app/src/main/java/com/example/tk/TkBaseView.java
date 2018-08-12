@@ -17,7 +17,8 @@ import java.util.List;
 
 public class TkBaseView extends View {
     //TK模型
-    protected TkModel mModel;
+    protected TkModel mPlayerModel1;
+    protected TkModel mPlayerModel2;
     protected List<TkModel> npcModels;
     //坦克整體大小
     protected int tkWidth = 60;
@@ -66,6 +67,8 @@ public class TkBaseView extends View {
         for (int i = 0; i < npcModels.size(); i++) {
             drawTK(npcModels.get(i));
         }
+        drawTK(mPlayerModel1);
+        drawTK(mPlayerModel2);
     }
 
     //绘制坦克
@@ -85,7 +88,7 @@ public class TkBaseView extends View {
         if (clearCanvas)
             mCanvas.clipRect(getPaddingLeft(), getPaddingTop(), getWidth() - getPaddingRight(), gameHeight - getPaddingBottom());
         switch (mModel.getDirect()) {
-            case TOP:
+            case UP:
                 drawTopTK(mModel);
                 break;
             case LEFT:
@@ -94,7 +97,7 @@ public class TkBaseView extends View {
             case RIGHT:
                 drawRightTK(mModel);
                 break;
-            case BOTTOM:
+            case DOWN:
                 drawBottomTK(mModel);
                 break;
         }
@@ -316,7 +319,7 @@ public class TkBaseView extends View {
     }
 
     //绘制鸟巢
-    private void drawHome(){
+    private void drawHome() {
         //从屏幕中间绘制五角星
 
     }

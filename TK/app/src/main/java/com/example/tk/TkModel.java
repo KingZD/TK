@@ -5,20 +5,16 @@ package com.example.tk;
  */
 public class TkModel {
 
-    public enum TKDirect {
-        //上  左    右     下
-        TOP, LEFT, RIGHT, BOTTOM
-    }
 
     public enum Player {
         //玩家一 玩家二 电脑
-        ONE, TWO, NPC
+        PLAYER1, PLAYER2, NPC
     }
 
     //定义坦克行驶方向和子弹弹射方向
-    private TKDirect direct = TKDirect.TOP;
+    private TKDirect direct = TKDirect.UP;
     //子弹移动速度
-    private int tkBallMoveSpeed = 1;
+    private int tkBallMoveSpeed = 10;
     //定义当前手机游戏界面的宽高，以便在别的手机进行坐标适配
     private float phoneWidth = 0;
     private float phoneHeight = 0;
@@ -37,7 +33,7 @@ public class TkModel {
     //坦克颜色
     private int tkColor = -1;
     //玩家1p 2p是根据当前创建游戏人来决定，创建者为1p
-    private Player player = Player.ONE;
+    private Player player = Player.PLAYER1;
     //记录坦克跑口的关键点坐标，方便子弹的绘制
     private float tkBulletX, tkBulletY;
     //最大同時存在子彈數目
