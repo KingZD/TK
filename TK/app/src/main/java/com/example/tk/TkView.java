@@ -21,8 +21,10 @@ import java.util.List;
 public class TkView extends TkBaseView {
     protected final int CREATE_NPC = 0;
     protected final int CREATE_PLAYER = 1;
+    //改变子弹的位置
+    protected final int CHANGE_BULLECT = 2;
     //维护一个队列进行子弹循环
-    protected final int CHECK_BULLECT = 2;
+    protected final int CHECK_BULLECT = 3;
 
 
     public TkView(Context context) {
@@ -40,6 +42,7 @@ public class TkView extends TkBaseView {
     @Override
     protected void init() {
         super.init();
+        gameHandler.sendEmptyMessageDelayed(CHANGE_BULLECT, 20);
     }
 
     @Override
@@ -145,12 +148,19 @@ public class TkView extends TkBaseView {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch (msg.what) {
+                //创建NPC
                 case CREATE_NPC:
                     randomGenerationTK();
                     break;
+                //创建玩家
                 case CREATE_PLAYER:
                     createPlayer1();
                     break;
+                //改变子弹位置
+                case CHANGE_BULLECT:
+
+                    break;
+                //检查子弹碰撞
                 case CHECK_BULLECT:
 
                     break;

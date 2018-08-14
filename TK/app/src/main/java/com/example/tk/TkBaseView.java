@@ -13,6 +13,7 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class TkBaseView extends View {
@@ -69,6 +70,9 @@ public class TkBaseView extends View {
         }
         drawTK(mPlayerModel1);
         drawTK(mPlayerModel2);
+        drawBullet();
+        drawBullet(mPlayerModel1);
+        drawBullet(mPlayerModel2);
     }
 
     //绘制坦克
@@ -303,21 +307,32 @@ public class TkBaseView extends View {
     }
 
     //画子弹
-    private void drawBullet(TkModel tkModel) {
+    public void drawBullet() {
+        for (TkModel tkModel : npcModels) {
+            drawBullet(tkModel);
+        }
         //子弹的位置跟随坦克的管子 根据定义的方向进行绘制
         //将最大子弹数目*2是为了后面 %2 过滤出一半的数目，最终目的是为了得到1，3，5，7，9类似有间隔的数字
         //让子弹之间看起来有间距层次感 同时总子弹数目也符合 maxBulletCount 的数目
-        for (int i = 1; i <= tkModel.getMaxBulletCount() * 2; i++) {
-            if (i % 2 != 0)
-                mCanvas.drawLine(tkModel.getTkBulletX(), tkModel.getTkBulletY() - i * bulletSpace, tkModel.getTkBulletX(), tkModel.getTkBulletY() - bulletSpace * (i + 1), mPaint);
-        }
+//        for (int i = 1; i <= tkModel.getMaxBulletCount() * 2; i++) {
+//            if (i % 2 != 0)
+//                mCanvas.drawLine(tkModel.getTkBulletX(), tkModel.getTkBulletY() - i * bulletSpace, tkModel.getTkBulletX(), tkModel.getTkBulletY() - bulletSpace * (i + 1), mPaint);
+//        }
+    }
 
+    private void drawBullet(TkModel tkModel) {
+        if (tkModel == null) return;
+        //画玩家的子弹
+        List<BullectModel> bullects = mPlayerModel1.getBullects();
+        if (bullects == null) return;
+        for (BullectModel next : bullects) {
+            mCanvas.drawLine(next.getStartX(), next.getStartY(), next.getStopX(), next.getStopY(), mPaint);
+        }
     }
 
     //绘制鸟巢
     private void drawHome() {
         //从屏幕中间绘制五角星
-
     }
 
 
