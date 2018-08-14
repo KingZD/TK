@@ -2,9 +2,11 @@ package com.example.tk;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
@@ -68,6 +70,7 @@ public class TkBaseView extends View {
         for (int i = 0; i < npcModels.size(); i++) {
             drawTK(npcModels.get(i));
         }
+        drawHome();
         drawTK(mPlayerModel1);
         drawTK(mPlayerModel2);
         drawBullet();
@@ -207,7 +210,7 @@ public class TkBaseView extends View {
 
         //记录炮口的位置
         mModel.setTkBulletX(tkCenterX);
-        mModel.setTkBulletY(tkCenterY - tkHeight / 2);
+        mModel.setTkBulletY(tkCenterY + tkHeight / 2);
     }
 
     //画TK(Right)
@@ -255,8 +258,8 @@ public class TkBaseView extends View {
         mCanvas.drawPath(tk, mPaint);
 
         //记录炮口的位置
-        mModel.setTkBulletX(tkCenterX);
-        mModel.setTkBulletY(tkCenterY - tkHeight / 2);
+        mModel.setTkBulletX(tkCenterX - tkWidth / 2 + bHeight / 2);
+        mModel.setTkBulletY(tkCenterY + tkHeight / 2 - tkWidth / 2);
     }
 
     private void drawLeftTK(TkModel mModel) {
@@ -302,8 +305,8 @@ public class TkBaseView extends View {
         mCanvas.drawPath(tk, mPaint);
 
         //记录炮口的位置
-        mModel.setTkBulletX(tkCenterX);
-        mModel.setTkBulletY(tkCenterY - tkHeight / 2);
+        mModel.setTkBulletX(tkCenterX - tkWidth / 2);
+        mModel.setTkBulletY(tkCenterY + tkHeight / 2 - tkWidth / 2);
     }
 
     //画子弹
@@ -311,28 +314,101 @@ public class TkBaseView extends View {
         for (TkModel tkModel : npcModels) {
             drawBullet(tkModel);
         }
-        //子弹的位置跟随坦克的管子 根据定义的方向进行绘制
-        //将最大子弹数目*2是为了后面 %2 过滤出一半的数目，最终目的是为了得到1，3，5，7，9类似有间隔的数字
-        //让子弹之间看起来有间距层次感 同时总子弹数目也符合 maxBulletCount 的数目
-//        for (int i = 1; i <= tkModel.getMaxBulletCount() * 2; i++) {
-//            if (i % 2 != 0)
-//                mCanvas.drawLine(tkModel.getTkBulletX(), tkModel.getTkBulletY() - i * bulletSpace, tkModel.getTkBulletX(), tkModel.getTkBulletY() - bulletSpace * (i + 1), mPaint);
-//        }
     }
 
+    //子弹的位置跟随坦克的管子 根据定义的方向进行绘制
+    //将最大子弹数目*2是为了后面 %2 过滤出一半的数目，最终目的是为了得到1，3，5，7，9类似有间隔的数字
+    //让子弹之间看起来有间距层次感 同时总子弹数目也符合 maxBulletCount 的数目
     private void drawBullet(TkModel tkModel) {
         if (tkModel == null) return;
         //画玩家的子弹
         List<BullectModel> bullects = mPlayerModel1.getBullects();
         if (bullects == null) return;
         for (BullectModel next : bullects) {
-            mCanvas.drawLine(next.getStartX(), next.getStartY(), next.getStopX(), next.getStopY(), mPaint);
+            switch (next.getDirect()) {
+                case UP:
+                    mCanvas.drawLine(next.getStartX(), next.getStartY() + bulletSpace, next.getStopX(), next.getStopY(), mPaint);
+                    break;
+                case LEFT:
+                    mCanvas.drawLine(next.getStartX() + bulletSpace, next.getStartY(), next.getStopX(), next.getStopY(), mPaint);
+                    break;
+                case RIGHT:
+                    mCanvas.drawLine(next.getStartX(), next.getStartY(), next.getStopX() + bulletSpace, next.getStopY(), mPaint);
+                    break;
+                case DOWN:
+                    mCanvas.drawLine(next.getStartX(), next.getStartY(), next.getStopX(), next.getStopY() + bulletSpace, mPaint);
+                    break;
+            }
         }
     }
 
+
     //绘制鸟巢
     private void drawHome() {
+        Path path = new Path();
+        path.moveTo(gameWidth * 2 / 3, gameHeight);
+        path.lineTo(gameWidth * 2 / 3, gameHeight - gameWidth / 3);
+        path.lineTo(gameWidth / 3, gameHeight - gameWidth / 3);
+        path.lineTo(gameWidth / 3, gameHeight);
+        path.close();// 使这些点构成封闭的多边形
         //从屏幕中间绘制五角星
+        mCanvas.drawPath(path, mPaint);
+        Rect rect = new Rect(gameWidth / 3, gameHeight - gameWidth / 3, gameWidth * 2 / 3, gameHeight);
+        mCanvas.drawBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher), null, rect, mPaint);
+    }
+
+//
+//    private void drawXX(){
+//        Path path = new Path();
+//        float radius = (gameWidth / 3) / 2;
+//        float radian = degree2Radian(36);// 36为五角星的角度
+//        float radius_in = (float) (radius * Math.sin(radian / 2) / Math
+//                .cos(radian)); // 中间五边形的半径
+//
+//
+//        float startX = (gameWidth / 3);
+//        float startY = (gameHeight - gameWidth / 3);
+//
+//        path.moveTo((float) (radius * Math.cos(radian / 2)) + startX, startY);// 此点为多边形的起点
+//        path.lineTo((float) (radius * Math.cos(radian / 2) + radius_in * Math.sin(radian)) + startX,
+//                (float) (radius - radius * Math.sin(radian / 2)) + startY);
+//
+//        path.lineTo((float) (radius * Math.cos(radian / 2) * 2) + startX,
+//                (float) (radius - radius * Math.sin(radian / 2)) + startY);
+//
+//        path.lineTo((float) (radius * Math.cos(radian / 2) + radius_in * Math.cos(radian / 2)) + startX,
+//                (float) (radius + radius_in * Math.sin(radian / 2)) + startY);
+//
+//        path.lineTo((float) (radius * Math.cos(radian / 2) + radius * Math.sin(radian)) + startX
+//                , (float) (radius + radius * Math.cos(radian)) + startY);
+//
+//        path.lineTo((float) (radius * Math.cos(radian / 2)) + startX,
+//                (radius + radius_in) + startY);
+//
+//        path.lineTo((float) (radius * Math.cos(radian / 2) - radius * Math.sin(radian)) + startX,
+//                (float) (radius + radius * Math.cos(radian)) + startY);
+//
+//        path.lineTo((float) (radius * Math.cos(radian / 2) - radius_in * Math.cos(radian / 2)) + startX,
+//                (float) (radius + radius_in * Math.sin(radian / 2)) + startY);
+//
+//        path.lineTo(0 + startX, (float) (radius - radius * Math.sin(radian / 2)) + startY);
+//
+//        path.lineTo((float) (radius * Math.cos(radian / 2) - radius_in * Math.sin(radian)) + startX,
+//                (float) (radius - radius * Math.sin(radian / 2)) + startY);
+//
+//        path.close();// 使这些点构成封闭的多边形
+//        //从屏幕中间绘制五角星
+//        mCanvas.drawPath(path, mPaint);
+//    }
+
+    /**
+     * 角度转弧度公式
+     *
+     * @param degree
+     * @return
+     */
+    private float degree2Radian(int degree) {
+        return (float) (Math.PI * degree / 180);
     }
 
 

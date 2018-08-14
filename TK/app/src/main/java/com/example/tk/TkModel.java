@@ -17,7 +17,9 @@ public class TkModel {
     //定义坦克行驶方向和子弹弹射方向
     private TKDirect direct = TKDirect.UP;
     //子弹移动速度
-    private int tkBallMoveSpeed = 10;
+    private int tkBallMoveSpeed = 3;
+    //坦克移动速度
+    private int tkMoveSpeed = 10;
     //定义当前手机游戏界面的宽高，以便在别的手机进行坐标适配
     private float phoneWidth = 0;
     private float phoneHeight = 0;
@@ -46,9 +48,8 @@ public class TkModel {
     //记录发出去的子弹
     private List<BullectModel> bullects;
 
-    public TkModel(TKDirect direct, int tkBallMoveSpeed, float tkWidth, float tkHeight, float tkHBScale, float tkCenterX, float tkCenterY, int tkLineWidth, int tkColor, Player player) {
+    public TkModel(TKDirect direct, float tkWidth, float tkHeight, float tkHBScale, float tkCenterX, float tkCenterY, int tkLineWidth, int tkColor, Player player) {
         this.direct = direct;
-        this.tkBallMoveSpeed = tkBallMoveSpeed;
         this.tkWidth = tkWidth;
         this.tkHeight = tkHeight;
         this.tkHBScale = tkHBScale;
@@ -201,5 +202,13 @@ public class TkModel {
 
     public void setBullects(List<BullectModel> bullects) {
         this.bullects = bullects;
+    }
+
+    public int getTkMoveSpeed() {
+        return tkMoveSpeed;
+    }
+
+    public void setTkMoveSpeed(int tkMoveSpeed) {
+        this.tkMoveSpeed = tkMoveSpeed;
     }
 }

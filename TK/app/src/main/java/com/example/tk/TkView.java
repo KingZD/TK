@@ -42,7 +42,12 @@ public class TkView extends TkBaseView {
     @Override
     protected void init() {
         super.init();
-        gameHandler.sendEmptyMessageDelayed(CHANGE_BULLECT, 20);
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        gameHandler.sendEmptyMessage(CHANGE_BULLECT);
     }
 
     @Override
@@ -54,9 +59,9 @@ public class TkView extends TkBaseView {
 
     //随机生成坦克
     private void randomGenerationTK() {
-        TkModel npc1 = new TkModel(TKDirect.DOWN, 5, tkWidth, tkHeight, 0.2f, 0, gameHeight, 5, R.color.colorPrimary, TkModel.Player.NPC);
-        TkModel npc2 = new TkModel(TKDirect.DOWN, 5, tkWidth, tkHeight, 0.2f, (gameWidth - tkWidth) / 2, gameHeight, 5, R.color.colorPrimary, TkModel.Player.NPC);
-        TkModel npc3 = new TkModel(TKDirect.DOWN, 5, tkWidth, tkHeight, 0.2f, gameWidth, gameHeight, 5, R.color.colorPrimary, TkModel.Player.NPC);
+        TkModel npc1 = new TkModel(TKDirect.DOWN, tkWidth, tkHeight, 0.2f, 0, gameHeight, 5, R.color.colorPrimary, TkModel.Player.NPC);
+        TkModel npc2 = new TkModel(TKDirect.DOWN, tkWidth, tkHeight, 0.2f, (gameWidth - tkWidth) / 2, gameHeight, 5, R.color.colorPrimary, TkModel.Player.NPC);
+        TkModel npc3 = new TkModel(TKDirect.DOWN, tkWidth, tkHeight, 0.2f, gameWidth, gameHeight, 5, R.color.colorPrimary, TkModel.Player.NPC);
         npcModels.add(npc1);
         npcModels.add(npc2);
         npcModels.add(npc3);
@@ -66,7 +71,7 @@ public class TkView extends TkBaseView {
     /*************************************玩家1控制************************************************/
     //创建玩家1
     private void createPlayer1() {
-        mPlayerModel1 = new TkModel(TKDirect.UP, 5, tkWidth, tkHeight, 0.2f, tkWidth, 0, 5, R.color.colorPrimary, TkModel.Player.PLAYER1);
+        mPlayerModel1 = new TkModel(TKDirect.UP, tkWidth, tkHeight, 0.2f, tkWidth, 0, 5, R.color.colorPrimary, TkModel.Player.PLAYER1);
         //初始化子彈集合
         mPlayerModel1.setBullects(new ArrayList<BullectModel>());
         invalidate();
@@ -75,12 +80,12 @@ public class TkView extends TkBaseView {
     //发送子弹
     public void sendPlayer1Ball() {
         List<BullectModel> bullects = mPlayerModel1.getBullects();
-        bullects.add(new BullectModel(mPlayerModel1.getDirect(), mPlayerModel1.getTkBulletX(), mPlayerModel1.getTkBulletY() - bulletSpace, mPlayerModel1.getTkBulletX(), mPlayerModel1.getTkBulletY() - bulletSpace * 2));
+        bullects.add(new BullectModel(mPlayerModel1.getDirect(), mPlayerModel1.getTkBulletX(), mPlayerModel1.getTkBulletY(), mPlayerModel1.getTkBulletX(), mPlayerModel1.getTkBulletY()));
     }
 
     //改变方向
-    public void changePlayer1Point(TKDirect direct) {
-        changePlayerPoint(mPlayerModel1, direct);
+    public void changePlayer1Direct(TKDirect direct) {
+        changePlayerDirect(mPlayerModel1, direct);
     }
 
     /*************************************玩家1控制************************************************/
@@ -89,44 +94,87 @@ public class TkView extends TkBaseView {
     /*************************************玩家2控制************************************************/
     //创建玩家2
     private void createPlayer2() {
-        mPlayerModel2 = new TkModel(TKDirect.UP, 5, tkWidth, tkHeight, 0.2f, gameWidth - tkWidth * 2, 0, 5, R.color.colorPrimary, TkModel.Player.PLAYER2);
+        mPlayerModel2 = new TkModel(TKDirect.UP, tkWidth, tkHeight, 0.2f, gameWidth - tkWidth * 2, 0, 5, R.color.colorPrimary, TkModel.Player.PLAYER2);
         invalidate();
     }
 
     //改变玩家2方向位置
-    public void changePlayer2Point() {
-
+    public void changePlayer2Direct(TKDirect direct) {
+        changePlayerDirect(mPlayerModel2, direct);
     }
 
     /*************************************玩家2控制************************************************/
 
 
     //创建TK开始
-    public void createTkAndStart(TkModel model) {
+    public void createTkStart() {
         gameHandler.sendEmptyMessageDelayed(CREATE_PLAYER, 50);
     }
 
 
     //改变玩家方向位置
-    public void changePlayerPoint(TkModel tkModel, TKDirect direct) {
+    public void changePlayerDirect(TkModel tkModel, TKDirect direct) {
+        if (tkModel == null) return;
         LogUtils.i(direct.name());
-        int tkBallMoveSpeed = mPlayerModel1.getTkBallMoveSpeed();
+        tkModel.setDirect(direct);
+        int tkMoveSpeed = tkModel.getTkMoveSpeed();
         switch (direct) {
             case UP:
-                mPlayerModel1.setTkCenterY(mPlayerModel1.getTkCenterY() + tkBallMoveSpeed);
+                tkModel.setTkCenterY(tkModel.getTkCenterY() + tkMoveSpeed);
                 break;
             case LEFT:
-                mPlayerModel1.setTkCenterX(mPlayerModel1.getTkCenterX() - tkBallMoveSpeed);
+                tkModel.setTkCenterX(tkModel.getTkCenterX() - tkMoveSpeed);
                 break;
             case RIGHT:
-                mPlayerModel1.setTkCenterX(mPlayerModel1.getTkCenterX() + tkBallMoveSpeed);
+                tkModel.setTkCenterX(tkModel.getTkCenterX() + tkMoveSpeed);
                 break;
             case DOWN:
-                mPlayerModel1.setTkCenterY(mPlayerModel1.getTkCenterY() - tkBallMoveSpeed);
+                tkModel.setTkCenterY(tkModel.getTkCenterY() - tkMoveSpeed);
                 break;
         }
-        mPlayerModel1.setDirect(direct);
+        tkModel.setDirect(direct);
         invalidate();
+    }
+
+    //变换子弹位置
+    private void changeBullet() {
+        //子弹的位置跟随坦克的管子 根据定义的方向进行绘制
+        //将最大子弹数目*2是为了后面 %2 过滤出一半的数目，最终目的是为了得到1，3，5，7，9类似有间隔的数字
+        //让子弹之间看起来有间距层次感 同时总子弹数目也符合 maxBulletCount 的数目
+        for (TkModel tkModel : npcModels) {
+            changeBullet(tkModel);
+        }
+        changeBullet(mPlayerModel1);
+        changeBullet(mPlayerModel2);
+        invalidate();
+
+    }
+
+    private void changeBullet(TkModel tkModel) {
+        if (tkModel == null) return;
+        //改变子弹的位置
+        List<BullectModel> bullects = mPlayerModel1.getBullects();
+        if (bullects == null) return;
+        for (BullectModel next : bullects) {
+            switch (next.getDirect()) {
+                case UP:
+                    next.setStartY(next.getStartY() - tkModel.getTkBallMoveSpeed());
+                    next.setStopY(next.getStartY() - tkModel.getTkBallMoveSpeed() * 2);
+                    break;
+                case LEFT:
+                    next.setStartX(next.getStartX() - tkModel.getTkBallMoveSpeed());
+                    next.setStopX(next.getStartX() - tkModel.getTkBallMoveSpeed() * 2);
+                    break;
+                case RIGHT:
+                    next.setStartX(next.getStartX() + tkModel.getTkBallMoveSpeed());
+                    next.setStopX(next.getStartX() + tkModel.getTkBallMoveSpeed() * 2);
+                    break;
+                case DOWN:
+                    next.setStartY(next.getStartY() + tkModel.getTkBallMoveSpeed());
+                    next.setStopY(next.getStartY() + tkModel.getTkBallMoveSpeed() * 2);
+                    break;
+            }
+        }
     }
 
     //暂停游戏
@@ -158,7 +206,8 @@ public class TkView extends TkBaseView {
                     break;
                 //改变子弹位置
                 case CHANGE_BULLECT:
-
+                    gameHandler.sendEmptyMessageDelayed(CHANGE_BULLECT, 40);
+                    changeBullet();
                     break;
                 //检查子弹碰撞
                 case CHECK_BULLECT:
