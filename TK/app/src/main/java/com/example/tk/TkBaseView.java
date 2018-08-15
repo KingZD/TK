@@ -74,8 +74,9 @@ public class TkBaseView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         mCanvas = canvas;
-        for (int i = 0; i < npcModels.size(); i++) {
-            drawTK(npcModels.get(i));
+        Iterator<TkModel> iterator = npcModels.iterator();
+        while (iterator.hasNext()) {
+            drawTK(iterator.next());
         }
         drawHome();
         drawTK(mPlayerModel1);
@@ -332,17 +333,17 @@ public class TkBaseView extends View {
         List<BullectModel> bullects = mPlayerModel1.getBullects();
         if (bullects == null) return;
         Iterator<BullectModel> iterator = bullects.iterator();
-        if (iterator.hasNext()) {
+        while (iterator.hasNext()) {
             BullectModel next = iterator.next();
             switch (next.getDirect()) {
                 case UP:
-                    mCanvas.drawLine(next.getStartX(), next.getStartY(), next.getStopX(), next.getStopY() - bulletSpace, mPaint);
+                    mCanvas.drawLine(next.getStartX(), next.getStartY() + bulletSpace, next.getStopX(), next.getStopY(), mPaint);
                     //如果子弹底部的位置Y坐标小于0代表已经超出屏幕，移除掉
                     if (next.getStartY() <= 0)
                         iterator.remove();
                     break;
                 case LEFT:
-                    mCanvas.drawLine(next.getStartX(), next.getStartY(), next.getStopX() - bulletSpace, next.getStopY(), mPaint);
+                    mCanvas.drawLine(next.getStartX() + bulletSpace, next.getStartY(), next.getStopX(), next.getStopY(), mPaint);
                     //如果子弹底部的位置Y坐标小于0代表已经超出屏幕，移除掉
                     if (next.getStartX() <= 0)
                         iterator.remove();
@@ -350,7 +351,7 @@ public class TkBaseView extends View {
                 case RIGHT:
                     mCanvas.drawLine(next.getStartX(), next.getStartY(), next.getStopX() + bulletSpace, next.getStopY(), mPaint);
                     //如果子弹底部的位置Y坐标大于屏幕高度代表已经超出屏幕，移除掉
-                    if (next.getStartX() >= gameHeight)
+                    if (next.getStartX() >= gameWidth)
                         iterator.remove();
                     break;
                 case DOWN:
@@ -360,7 +361,6 @@ public class TkBaseView extends View {
                         iterator.remove();
                     break;
             }
-            LogUtils.i("玩家", tkModel.getPlayer().name(), "剩余有效子弹数目", bullects.size());
         }
 
 //        for (BullectModel next : bullects) {
@@ -452,17 +452,17 @@ public class TkBaseView extends View {
 
     //判断点是否在path内
 
-    private boolean pointInPath(Path path, int x, int y) {
+    protected boolean pointInPath(Path path, int x, int y) {
         return pointInPath(path, new Point(x, y));
     }
 
-    private boolean pointInPath(Path path, Point point) {
+    protected boolean pointInPath(Path path, Point point) {
         path.computeBounds(mCalculatePressBounds, true);
         mCalculatePressRegion.setPath(path, new Region((int) mCalculatePressBounds.left, (int) mCalculatePressBounds.top, (int) mCalculatePressBounds.right, (int) mCalculatePressBounds.bottom));
         return mCalculatePressRegion.contains(point.x, point.y);
     }
 
-    private boolean pointInPath(float left, float top, float right, float bottom, Point point) {
+    protected boolean pointInPath(float left, float top, float right, float bottom, Point point) {
         mCalculatePressRegion.set((int) left, (int) top, (int) right, (int) bottom);
         return mCalculatePressRegion.contains(point.x, point.y);
     }

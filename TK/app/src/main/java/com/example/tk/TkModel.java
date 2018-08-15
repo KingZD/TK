@@ -1,5 +1,7 @@
 package com.example.tk;
 
+import android.graphics.Rect;
+
 import java.util.List;
 import java.util.Map;
 
@@ -210,5 +212,22 @@ public class TkModel {
 
     public void setTkMoveSpeed(int tkMoveSpeed) {
         this.tkMoveSpeed = tkMoveSpeed;
+    }
+
+    public Rect getTkRect() {
+        Rect rect = new Rect();
+        float halfWidth = tkWidth / 2;
+        float halfHeight = tkHeight / 2;
+        switch (direct) {
+            case UP:
+            case DOWN:
+                rect.set((int) (tkCenterX - halfWidth), (int) (tkCenterY - halfHeight), (int) (tkCenterX + halfWidth), (int) (tkCenterY + halfHeight));
+                break;
+            case RIGHT:
+            case LEFT:
+                rect.set((int) (tkCenterX - halfHeight), (int) (tkCenterY - halfWidth), (int) (tkCenterX + halfHeight), (int) (tkCenterY + halfWidth));
+                break;
+        }
+        return rect;
     }
 }

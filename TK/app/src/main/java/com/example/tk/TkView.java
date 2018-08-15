@@ -6,8 +6,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
@@ -16,6 +18,7 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class TkView extends TkBaseView {
@@ -23,8 +26,12 @@ public class TkView extends TkBaseView {
     protected final int CREATE_PLAYER = 1;
     //改变子弹的位置
     protected final int CHANGE_BULLECT = 2;
-    //维护一个队列进行子弹循环
-    protected final int CHECK_BULLECT = 3;
+    //检测子弹和坦克碰撞
+    protected final int CHECK_BULLECT_TK = 3;
+    //检测子弹和子弹之间的碰撞
+    protected final int CHECK_BULLECT = 4;
+    //检测子弹板砖之间的碰撞
+    protected final int CHECK_BULLECT_BRICK = 5;
 
 
     public TkView(Context context) {
@@ -48,6 +55,9 @@ public class TkView extends TkBaseView {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         gameHandler.sendEmptyMessage(CHANGE_BULLECT);
+        gameHandler.sendEmptyMessage(CHECK_BULLECT);
+        gameHandler.sendEmptyMessage(CHECK_BULLECT_BRICK);
+        gameHandler.sendEmptyMessage(CHECK_BULLECT_TK);
     }
 
     @Override
@@ -159,22 +169,53 @@ public class TkView extends TkBaseView {
             switch (next.getDirect()) {
                 case UP:
                     next.setStartY(next.getStartY() - tkModel.getTkBallMoveSpeed());
-                    next.setStopY(next.getStopY() - tkModel.getTkBallMoveSpeed() * 2);
+                    next.setStopY(next.getStartY() - tkModel.getTkBallMoveSpeed() * 2);
                     break;
                 case LEFT:
                     next.setStartX(next.getStartX() - tkModel.getTkBallMoveSpeed());
-                    next.setStopX(next.getStopX() - tkModel.getTkBallMoveSpeed() * 2);
+                    next.setStopX(next.getStartX() - tkModel.getTkBallMoveSpeed() * 2);
                     break;
                 case RIGHT:
                     next.setStartX(next.getStartX() + tkModel.getTkBallMoveSpeed());
-                    next.setStopX(next.getStopX() + tkModel.getTkBallMoveSpeed() * 2);
+                    next.setStopX(next.getStartX() + tkModel.getTkBallMoveSpeed() * 2);
                     break;
                 case DOWN:
                     next.setStartY(next.getStartY() + tkModel.getTkBallMoveSpeed());
-                    next.setStopY(next.getStopY() + tkModel.getTkBallMoveSpeed() * 2);
+                    next.setStopY(next.getStartY() + tkModel.getTkBallMoveSpeed() * 2);
                     break;
             }
         }
+    }
+
+    //检测子弹和坦克碰撞
+    private void checkBulletTkCollision() {
+        Iterator<TkModel> tks = npcModels.iterator();
+        while (tks.hasNext()) {
+            TkModel nextTk = tks.next();
+            List<BullectModel> bullects = mPlayerModel1.getBullects();
+            if (bullects == null) break;
+            Iterator<BullectModel> iterator = bullects.iterator();
+            while (iterator.hasNext()) {
+                BullectModel next = iterator.next();
+                boolean b = nextTk.getTkRect().contains(next.getBullectRect(gameHeight, gameWidth, bulletSpace, nextTk.getTkLineWidth()));
+                LogUtils.i(nextTk.getTkRect());
+                if (b) {//如果子弹在坦克范围内则 打中坦克，子弹移除 移除坦克
+                    iterator.remove();
+                    tks.remove();
+                }
+            }
+        }
+        invalidate();
+    }
+
+    //检测子弹和子弹碰撞
+    private void checkBulletCollision() {
+
+    }
+
+    //检测子弹和砖头碰撞
+    private void checkBulletBrickCollision() {
+
     }
 
     //暂停游戏
@@ -211,7 +252,18 @@ public class TkView extends TkBaseView {
                     break;
                 //检查子弹碰撞
                 case CHECK_BULLECT:
-
+                    gameHandler.sendEmptyMessageDelayed(CHECK_BULLECT, 40);
+                    checkBulletCollision();
+                    break;
+                //检查子弹坦克碰撞
+                case CHECK_BULLECT_TK:
+                    gameHandler.sendEmptyMessageDelayed(CHECK_BULLECT_TK, 40);
+                    checkBulletTkCollision();
+                    break;
+                //检查子弹板砖碰撞
+                case CHECK_BULLECT_BRICK:
+                    gameHandler.sendEmptyMessageDelayed(CHECK_BULLECT_BRICK, 40);
+                    checkBulletBrickCollision();
                     break;
             }
         }
