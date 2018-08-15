@@ -159,19 +159,19 @@ public class TkView extends TkBaseView {
             switch (next.getDirect()) {
                 case UP:
                     next.setStartY(next.getStartY() - tkModel.getTkBallMoveSpeed());
-                    next.setStopY(next.getStartY() - tkModel.getTkBallMoveSpeed() * 2);
+                    next.setStopY(next.getStopY() - tkModel.getTkBallMoveSpeed() * 2);
                     break;
                 case LEFT:
                     next.setStartX(next.getStartX() - tkModel.getTkBallMoveSpeed());
-                    next.setStopX(next.getStartX() - tkModel.getTkBallMoveSpeed() * 2);
+                    next.setStopX(next.getStopX() - tkModel.getTkBallMoveSpeed() * 2);
                     break;
                 case RIGHT:
                     next.setStartX(next.getStartX() + tkModel.getTkBallMoveSpeed());
-                    next.setStopX(next.getStartX() + tkModel.getTkBallMoveSpeed() * 2);
+                    next.setStopX(next.getStopX() + tkModel.getTkBallMoveSpeed() * 2);
                     break;
                 case DOWN:
                     next.setStartY(next.getStartY() + tkModel.getTkBallMoveSpeed());
-                    next.setStopY(next.getStartY() + tkModel.getTkBallMoveSpeed() * 2);
+                    next.setStopY(next.getStopY() + tkModel.getTkBallMoveSpeed() * 2);
                     break;
             }
         }
