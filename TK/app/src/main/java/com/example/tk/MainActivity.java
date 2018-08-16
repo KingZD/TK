@@ -44,7 +44,7 @@ public class MainActivity extends BaseActivity {
     //开始游戏
     @OnClick(R.id.btStart)
     void start() {
-
+        tkView.createTkStart();
     }
 
     //发送子弹

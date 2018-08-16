@@ -51,22 +51,6 @@ public class TkView extends TkBaseView {
         super.init();
     }
 
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        gameHandler.sendEmptyMessage(CHANGE_BULLECT);
-        gameHandler.sendEmptyMessage(CHECK_BULLECT);
-        gameHandler.sendEmptyMessage(CHECK_BULLECT_BRICK);
-        gameHandler.sendEmptyMessage(CHECK_BULLECT_TK);
-    }
-
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-        randomGenerationTK();
-        createPlayer1();
-    }
-
     //随机生成坦克
     private void randomGenerationTK() {
         TkModel npc1 = new TkModel(TKDirect.DOWN, tkWidth, tkHeight, 0.2f, 0, gameHeight, 5, R.color.colorPrimary, TkModel.Player.NPC);
@@ -118,7 +102,12 @@ public class TkView extends TkBaseView {
 
     //创建TK开始
     public void createTkStart() {
-        gameHandler.sendEmptyMessageDelayed(CREATE_PLAYER, 50);
+        gameHandler.sendEmptyMessage(CREATE_NPC);
+        gameHandler.sendEmptyMessage(CREATE_PLAYER);
+        gameHandler.sendEmptyMessage(CHANGE_BULLECT);
+        gameHandler.sendEmptyMessage(CHECK_BULLECT);
+        gameHandler.sendEmptyMessage(CHECK_BULLECT_BRICK);
+        gameHandler.sendEmptyMessage(CHECK_BULLECT_TK);
     }
 
 
@@ -130,7 +119,7 @@ public class TkView extends TkBaseView {
         int tkMoveSpeed = tkModel.getTkMoveSpeed();
         switch (direct) {
             case UP:
-                tkModel.setTkCenterY(tkModel.getTkCenterY() + tkMoveSpeed);
+                tkModel.setTkCenterY(tkModel.getTkCenterY() - tkMoveSpeed);
                 break;
             case LEFT:
                 tkModel.setTkCenterX(tkModel.getTkCenterX() - tkMoveSpeed);
@@ -148,7 +137,7 @@ public class TkView extends TkBaseView {
 
     //变换子弹位置
     private void changeBullet() {
-        //子弹的位置跟随坦克的管子 根据定义的方向进行绘制
+        //子弹的位置跟随坦克的炮管 根据定义的方向进行绘制
         //将最大子弹数目*2是为了后面 %2 过滤出一半的数目，最终目的是为了得到1，3，5，7，9类似有间隔的数字
         //让子弹之间看起来有间距层次感 同时总子弹数目也符合 maxBulletCount 的数目
         for (TkModel tkModel : npcModels) {
@@ -232,7 +221,7 @@ public class TkView extends TkBaseView {
 
     //绘制线程
     @SuppressLint("HandlerLeak")
-    protected Handler gameHandler = new Handler() {
+    private Handler gameHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);

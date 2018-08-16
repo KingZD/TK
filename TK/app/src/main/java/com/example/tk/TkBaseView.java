@@ -2,6 +2,7 @@ package com.example.tk;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -38,6 +39,7 @@ public class TkBaseView extends View {
     private Canvas mCanvas;
     RectF mCalculatePressBounds;
     Region mCalculatePressRegion;
+    private Bitmap mHome;
 
     public TkBaseView(Context context) {
         super(context);
@@ -61,6 +63,7 @@ public class TkBaseView extends View {
         npcModels = new ArrayList<>();
         mCalculatePressBounds = new RectF();
         mCalculatePressRegion = new Region();
+        mHome = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
     }
 
     @Override
@@ -125,11 +128,11 @@ public class TkBaseView extends View {
         float tkLineWidth = mModel.getTkLineWidth();
         float tkHeight = mModel.getTkHeight() - tkLineWidth * 2;
         float tkWidth = mModel.getTkWidth() - tkLineWidth * 2;
-        float tkCenterX = mModel.getTkCenterX() + tkWidth / 2;
+        float tkCenterX = mModel.getTkCenterX() <= 0 ? (mModel.getTkCenterX() + tkWidth / 2) : mModel.getTkCenterX();
         //因为初始的时候中心点应该为 tkWidth / 2
-        tkCenterX = (tkCenterX + tkWidth / 2) > gameWidth ? (gameWidth - tkWidth / 2) : tkCenterX;
-        float tkCenterY = gameHeight - mModel.getTkCenterY() - tkHeight / 2;
-        tkCenterY = tkCenterY < 0 ? (tkHeight / 2) : tkCenterY;
+//        tkCenterX = (tkCenterX + tkWidth / 2) > gameWidth ? (gameWidth - tkWidth / 2) : tkCenterX;
+        float tkCenterY = mModel.getTkCenterY() <= 0 ? (gameHeight - mModel.getTkCenterY() - tkHeight / 2) : mModel.getTkCenterY();
+//        tkCenterY = tkCenterY < 0 ? (tkHeight / 2) : tkCenterY;
         mPaint.setColor(getColor(mModel.getTkColor()));
         mPaint.setStrokeWidth(tkLineWidth);
         mPaint.setStyle(Paint.Style.STROKE);
@@ -168,6 +171,9 @@ public class TkBaseView extends View {
         //记录炮口的位置
         mModel.setTkBulletX(tkCenterX);
         mModel.setTkBulletY(tkCenterY - tkHeight / 2);
+        //记录中心坐标点
+        mModel.setTkCenterX(tkCenterX);
+        mModel.setTkCenterY(tkCenterY);
     }
 
     //画TK(Bottom)
@@ -393,7 +399,7 @@ public class TkBaseView extends View {
         //从屏幕中间绘制五角星
         mCanvas.drawPath(path, mPaint);
         Rect rect = new Rect(gameWidth / 3, gameHeight - gameWidth / 3, gameWidth * 2 / 3, gameHeight);
-        mCanvas.drawBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher), null, rect, mPaint);
+//        mCanvas.drawBitmap(mHome, rect, rect, mPaint);
     }
 
 //
