@@ -7,4 +7,7 @@
     <color name="green">#389811</color>
     <color name="yellow">#edaf1d</color>
     <color name="white">#ffffff</color>
+
+
+    <item name="transparent" type="drawable">#00000000</item>
 </resources>

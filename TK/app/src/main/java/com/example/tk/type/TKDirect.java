@@ -1,4 +1,4 @@
-package com.example.tk;
+package com.example.tk.type;
 
 /**
  * Created by zed on 2018/8/11.

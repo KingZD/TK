@@ -1,18 +1,21 @@
-package com.example.tk;
+package com.example.tk.entity;
 
 import android.graphics.Rect;
+
+import com.example.tk.util.LogUtils;
+import com.example.tk.type.TKDirect;
 
 /**
  * Created by zed on 2018/8/12.
  */
-public class BullectModel {
+public class BullectEntity {
     private TKDirect direct;
     private float startX;
     private float startY;
     private float stopX;
     private float stopY;
 
-    public BullectModel(TKDirect direct, float startX, float startY, float stopX, float stopY) {
+    public BullectEntity(TKDirect direct, float startX, float startY, float stopX, float stopY) {
         this.direct = direct;
         this.startX = startX;
         this.startY = startY;

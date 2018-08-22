@@ -1,4 +1,4 @@
-package com.example.tk;
+package com.example.tk.util;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageInfo;

@@ -1,4 +1,4 @@
-package com.example.tk;
+package com.example.tk.ui.widget;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -17,6 +17,9 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatButton;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
+
+import com.example.tk.R;
+import com.example.tk.type.TKDirect;
 
 //自定义方向键盘
 public class DirectButton extends AppCompatButton {

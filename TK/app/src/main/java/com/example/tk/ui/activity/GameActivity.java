@@ -1,16 +1,20 @@
-package com.example.tk;
+package com.example.tk.ui.activity;
 
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.view.View;
+import android.support.annotation.Nullable;
 import android.widget.Button;
+
+import com.example.tk.R;
+import com.example.tk.base.BaseActivity;
+import com.example.tk.type.TKDirect;
+import com.example.tk.ui.widget.DirectButton;
+import com.example.tk.ui.widget.TkView;
 
 import butterknife.BindView;
 import butterknife.OnClick;
 
-public class MainActivity extends BaseActivity {
+public class GameActivity extends BaseActivity {
     @BindView(R.id.tkView)
     TkView tkView;
     @BindView(R.id.btDirect)
@@ -24,21 +28,18 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected int getLayoutId() {
-        return R.layout.activity_main;
+        return R.layout.activity_game;
     }
 
     @Override
     protected void initView(@Nullable Bundle savedInstanceState) {
+        startActivity(new Intent(this, BluetoothActivity.class));
         btDirect.setListener(new DirectButton.OnDirectListener() {
             @Override
             public void direct(TKDirect direct) {
                 tkView.changePlayer1Direct(direct);
             }
         });
-    }
-
-    public void start(View view) {
-        tkView.createTkStart();
     }
 
     //开始游戏

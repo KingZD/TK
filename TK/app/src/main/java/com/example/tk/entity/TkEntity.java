@@ -1,14 +1,15 @@
-package com.example.tk;
+package com.example.tk.entity;
 
 import android.graphics.Rect;
 
+import com.example.tk.type.TKDirect;
+
 import java.util.List;
-import java.util.Map;
 
 /**
  * 定义坦克模型
  */
-public class TkModel {
+public class TkEntity {
 
 
     public enum Player {
@@ -48,9 +49,9 @@ public class TkModel {
     //分数
     private int score = 0;
     //记录发出去的子弹
-    private List<BullectModel> bullects;
+    private List<BullectEntity> bullects;
 
-    public TkModel(TKDirect direct, float tkWidth, float tkHeight, float tkHBScale, float tkCenterX, float tkCenterY, int tkLineWidth, int tkColor, Player player) {
+    public TkEntity(TKDirect direct, float tkWidth, float tkHeight, float tkHBScale, float tkCenterX, float tkCenterY, int tkLineWidth, int tkColor, Player player) {
         this.direct = direct;
         this.tkWidth = tkWidth;
         this.tkHeight = tkHeight;
@@ -198,11 +199,11 @@ public class TkModel {
         this.score = score;
     }
 
-    public List<BullectModel> getBullects() {
+    public List<BullectEntity> getBullects() {
         return bullects;
     }
 
-    public void setBullects(List<BullectModel> bullects) {
+    public void setBullects(List<BullectEntity> bullects) {
         this.bullects = bullects;
     }
 

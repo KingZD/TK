@@ -1,21 +1,17 @@
-package com.example.tk;
+package com.example.tk.ui.widget;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.Point;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
-import android.view.View;
+
+import com.example.tk.entity.BullectEntity;
+import com.example.tk.util.LogUtils;
+import com.example.tk.R;
+import com.example.tk.type.TKDirect;
+import com.example.tk.entity.TkEntity;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -53,9 +49,9 @@ public class TkView extends TkBaseView {
 
     //随机生成坦克
     private void randomGenerationTK() {
-        TkModel npc1 = new TkModel(TKDirect.DOWN, tkWidth, tkHeight, 0.2f, 0, gameHeight, 5, R.color.colorPrimary, TkModel.Player.NPC);
-        TkModel npc2 = new TkModel(TKDirect.DOWN, tkWidth, tkHeight, 0.2f, (gameWidth - tkWidth) / 2, gameHeight, 5, R.color.colorPrimary, TkModel.Player.NPC);
-        TkModel npc3 = new TkModel(TKDirect.DOWN, tkWidth, tkHeight, 0.2f, gameWidth, gameHeight, 5, R.color.colorPrimary, TkModel.Player.NPC);
+        TkEntity npc1 = new TkEntity(TKDirect.DOWN, tkWidth, tkHeight, 0.2f, 0, tkHeight / 2, 5, R.color.colorPrimary, TkEntity.Player.NPC);
+        TkEntity npc2 = new TkEntity(TKDirect.DOWN, tkWidth, tkHeight, 0.2f, gameWidth / 2, tkHeight / 2, 5, R.color.colorPrimary, TkEntity.Player.NPC);
+        TkEntity npc3 = new TkEntity(TKDirect.DOWN, tkWidth, tkHeight, 0.2f, gameWidth - tkWidth / 2, tkHeight / 2, 5, R.color.colorPrimary, TkEntity.Player.NPC);
         npcModels.add(npc1);
         npcModels.add(npc2);
         npcModels.add(npc3);
@@ -65,16 +61,17 @@ public class TkView extends TkBaseView {
     /*************************************玩家1控制************************************************/
     //创建玩家1
     private void createPlayer1() {
-        mPlayerModel1 = new TkModel(TKDirect.UP, tkWidth, tkHeight, 0.2f, tkWidth, 0, 5, R.color.colorPrimary, TkModel.Player.PLAYER1);
+        mPlayerModel1 = new TkEntity(TKDirect.UP, tkWidth, tkHeight, 0.2f, tkWidth, 0, 5, R.color.colorPrimary, TkEntity.Player.PLAYER1);
         //初始化子彈集合
-        mPlayerModel1.setBullects(new ArrayList<BullectModel>());
+        mPlayerModel1.setBullects(new ArrayList<BullectEntity>());
         invalidate();
     }
 
     //发送子弹
     public void sendPlayer1Ball() {
-        List<BullectModel> bullects = mPlayerModel1.getBullects();
-        bullects.add(new BullectModel(mPlayerModel1.getDirect(), mPlayerModel1.getTkBulletX(), mPlayerModel1.getTkBulletY(), mPlayerModel1.getTkBulletX(), mPlayerModel1.getTkBulletY()));
+        if (mPlayerModel1 == null) return;
+        List<BullectEntity> bullects = mPlayerModel1.getBullects();
+        bullects.add(new BullectEntity(mPlayerModel1.getDirect(), mPlayerModel1.getTkBulletX(), mPlayerModel1.getTkBulletY(), mPlayerModel1.getTkBulletX(), mPlayerModel1.getTkBulletY()));
     }
 
     //改变方向
@@ -88,7 +85,7 @@ public class TkView extends TkBaseView {
     /*************************************玩家2控制************************************************/
     //创建玩家2
     private void createPlayer2() {
-        mPlayerModel2 = new TkModel(TKDirect.UP, tkWidth, tkHeight, 0.2f, gameWidth - tkWidth * 2, 0, 5, R.color.colorPrimary, TkModel.Player.PLAYER2);
+        mPlayerModel2 = new TkEntity(TKDirect.UP, tkWidth, tkHeight, 0.2f, gameWidth - tkWidth * 2, 0, 5, R.color.colorPrimary, TkEntity.Player.PLAYER2);
         invalidate();
     }
 
@@ -112,26 +109,26 @@ public class TkView extends TkBaseView {
 
 
     //改变玩家方向位置
-    public void changePlayerDirect(TkModel tkModel, TKDirect direct) {
-        if (tkModel == null) return;
+    public void changePlayerDirect(TkEntity tkEntity, TKDirect direct) {
+        if (tkEntity == null) return;
         LogUtils.i(direct.name());
-        tkModel.setDirect(direct);
-        int tkMoveSpeed = tkModel.getTkMoveSpeed();
+        tkEntity.setDirect(direct);
+        int tkMoveSpeed = tkEntity.getTkMoveSpeed();
         switch (direct) {
             case UP:
-                tkModel.setTkCenterY(tkModel.getTkCenterY() - tkMoveSpeed);
+                tkEntity.setTkCenterY(tkEntity.getTkCenterY() - tkMoveSpeed);
                 break;
             case LEFT:
-                tkModel.setTkCenterX(tkModel.getTkCenterX() - tkMoveSpeed);
+                tkEntity.setTkCenterX(tkEntity.getTkCenterX() - tkMoveSpeed);
                 break;
             case RIGHT:
-                tkModel.setTkCenterX(tkModel.getTkCenterX() + tkMoveSpeed);
+                tkEntity.setTkCenterX(tkEntity.getTkCenterX() + tkMoveSpeed);
                 break;
             case DOWN:
-                tkModel.setTkCenterY(tkModel.getTkCenterY() - tkMoveSpeed);
+                tkEntity.setTkCenterY(tkEntity.getTkCenterY() + tkMoveSpeed);
                 break;
         }
-        tkModel.setDirect(direct);
+        tkEntity.setDirect(direct);
         invalidate();
     }
 
@@ -140,8 +137,8 @@ public class TkView extends TkBaseView {
         //子弹的位置跟随坦克的炮管 根据定义的方向进行绘制
         //将最大子弹数目*2是为了后面 %2 过滤出一半的数目，最终目的是为了得到1，3，5，7，9类似有间隔的数字
         //让子弹之间看起来有间距层次感 同时总子弹数目也符合 maxBulletCount 的数目
-        for (TkModel tkModel : npcModels) {
-            changeBullet(tkModel);
+        for (TkEntity tkEntity : npcModels) {
+            changeBullet(tkEntity);
         }
         changeBullet(mPlayerModel1);
         changeBullet(mPlayerModel2);
@@ -149,28 +146,28 @@ public class TkView extends TkBaseView {
 
     }
 
-    private void changeBullet(TkModel tkModel) {
-        if (tkModel == null) return;
+    private void changeBullet(TkEntity tkEntity) {
+        if (tkEntity == null) return;
         //改变子弹的位置
-        List<BullectModel> bullects = mPlayerModel1.getBullects();
+        List<BullectEntity> bullects = mPlayerModel1.getBullects();
         if (bullects == null) return;
-        for (BullectModel next : bullects) {
+        for (BullectEntity next : bullects) {
             switch (next.getDirect()) {
                 case UP:
-                    next.setStartY(next.getStartY() - tkModel.getTkBallMoveSpeed());
-                    next.setStopY(next.getStartY() - tkModel.getTkBallMoveSpeed() * 2);
+                    next.setStartY(next.getStartY() - tkEntity.getTkBallMoveSpeed());
+                    next.setStopY(next.getStartY() - tkEntity.getTkBallMoveSpeed() * 2);
                     break;
                 case LEFT:
-                    next.setStartX(next.getStartX() - tkModel.getTkBallMoveSpeed());
-                    next.setStopX(next.getStartX() - tkModel.getTkBallMoveSpeed() * 2);
+                    next.setStartX(next.getStartX() - tkEntity.getTkBallMoveSpeed());
+                    next.setStopX(next.getStartX() - tkEntity.getTkBallMoveSpeed() * 2);
                     break;
                 case RIGHT:
-                    next.setStartX(next.getStartX() + tkModel.getTkBallMoveSpeed());
-                    next.setStopX(next.getStartX() + tkModel.getTkBallMoveSpeed() * 2);
+                    next.setStartX(next.getStartX() + tkEntity.getTkBallMoveSpeed());
+                    next.setStopX(next.getStartX() + tkEntity.getTkBallMoveSpeed() * 2);
                     break;
                 case DOWN:
-                    next.setStartY(next.getStartY() + tkModel.getTkBallMoveSpeed());
-                    next.setStopY(next.getStartY() + tkModel.getTkBallMoveSpeed() * 2);
+                    next.setStartY(next.getStartY() + tkEntity.getTkBallMoveSpeed());
+                    next.setStopY(next.getStartY() + tkEntity.getTkBallMoveSpeed() * 2);
                     break;
             }
         }
@@ -178,14 +175,14 @@ public class TkView extends TkBaseView {
 
     //检测子弹和坦克碰撞
     private void checkBulletTkCollision() {
-        Iterator<TkModel> tks = npcModels.iterator();
+        Iterator<TkEntity> tks = npcModels.iterator();
         while (tks.hasNext()) {
-            TkModel nextTk = tks.next();
-            List<BullectModel> bullects = mPlayerModel1.getBullects();
+            TkEntity nextTk = tks.next();
+            List<BullectEntity> bullects = mPlayerModel1.getBullects();
             if (bullects == null) break;
-            Iterator<BullectModel> iterator = bullects.iterator();
+            Iterator<BullectEntity> iterator = bullects.iterator();
             while (iterator.hasNext()) {
-                BullectModel next = iterator.next();
+                BullectEntity next = iterator.next();
                 boolean b = nextTk.getTkRect().contains(next.getBullectRect(gameHeight, gameWidth, bulletSpace, nextTk.getTkLineWidth()));
                 LogUtils.i(nextTk.getTkRect());
                 if (b) {//如果子弹在坦克范围内则 打中坦克，子弹移除 移除坦克

@@ -1,6 +1,5 @@
-package com.example.tk;
+package com.example.tk.ui.widget;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,12 +10,14 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Region;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.View;
+
+import com.example.tk.entity.BullectEntity;
+import com.example.tk.R;
+import com.example.tk.entity.TkEntity;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -24,11 +25,11 @@ import java.util.List;
 
 public class TkBaseView extends View {
     //TK模型
-    protected TkModel mPlayerModel1;
-    protected TkModel mPlayerModel2;
-    protected List<TkModel> npcModels;
+    protected TkEntity mPlayerModel1;
+    protected TkEntity mPlayerModel2;
+    protected List<TkEntity> npcModels;
     //坦克整體大小
-    protected int tkWidth = 60;
+    protected int tkWidth = 100;
     protected int tkHeight = 100;
     //布局宽高
     protected int gameHeight = 0;
@@ -63,7 +64,9 @@ public class TkBaseView extends View {
         npcModels = new ArrayList<>();
         mCalculatePressBounds = new RectF();
         mCalculatePressRegion = new Region();
-        mHome = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
+        //不允许在原图上进行操作
+        mHome = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher)
+                .copy(Bitmap.Config.ARGB_8888, true);
     }
 
     @Override
@@ -76,8 +79,14 @@ public class TkBaseView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        //主持大局的玩家都没有还玩蛇皮
+        if (mPlayerModel1 == null)
+            return;
+        //玩家暂停
+        if (mPlayerModel1.isPauseGame() || mPlayerModel2 != null && mPlayerModel2.isPauseGame())
+            return;
         mCanvas = canvas;
-        Iterator<TkModel> iterator = npcModels.iterator();
+        Iterator<TkEntity> iterator = npcModels.iterator();
         while (iterator.hasNext()) {
             drawTK(iterator.next());
         }
@@ -90,12 +99,12 @@ public class TkBaseView extends View {
     }
 
     //绘制坦克
-    private void drawTK(TkModel mModel) {
+    private void drawTK(TkEntity mModel) {
         drawTK(mModel, false);
     }
 
     //绘制坦克
-    private void drawTK(TkModel mModel, boolean clearCanvas) {
+    private void drawTK(TkEntity mModel, boolean clearCanvas) {
         //没有模型的话不开始游戏
         if (mModel == null) return;
         //暂停游戏
@@ -122,7 +131,7 @@ public class TkBaseView extends View {
     }
 
     //画TK(TOP)
-    private void drawTopTK(TkModel mModel) {
+    private void drawTopTK(TkEntity mModel) {
         mModel.setPhoneHeight(gameHeight);
         mModel.setPhoneWidth(gameWidth);
         float tkLineWidth = mModel.getTkLineWidth();
@@ -130,9 +139,8 @@ public class TkBaseView extends View {
         float tkWidth = mModel.getTkWidth() - tkLineWidth * 2;
         float tkCenterX = mModel.getTkCenterX() <= 0 ? (mModel.getTkCenterX() + tkWidth / 2) : mModel.getTkCenterX();
         //因为初始的时候中心点应该为 tkWidth / 2
-//        tkCenterX = (tkCenterX + tkWidth / 2) > gameWidth ? (gameWidth - tkWidth / 2) : tkCenterX;
         float tkCenterY = mModel.getTkCenterY() <= 0 ? (gameHeight - mModel.getTkCenterY() - tkHeight / 2) : mModel.getTkCenterY();
-//        tkCenterY = tkCenterY < 0 ? (tkHeight / 2) : tkCenterY;
+        tkCenterY = tkCenterY <= tkHeight / 2 ? tkHeight / 2 : tkCenterY;
         mPaint.setColor(getColor(mModel.getTkColor()));
         mPaint.setStrokeWidth(tkLineWidth);
         mPaint.setStyle(Paint.Style.STROKE);
@@ -177,17 +185,16 @@ public class TkBaseView extends View {
     }
 
     //画TK(Bottom)
-    private void drawBottomTK(TkModel mModel) {
+    private void drawBottomTK(TkEntity mModel) {
         mModel.setPhoneHeight(gameHeight);
         mModel.setPhoneWidth(gameWidth);
         float tkLineWidth = mModel.getTkLineWidth();
         float tkHeight = mModel.getTkHeight() - tkLineWidth * 2;
         float tkWidth = mModel.getTkWidth() - tkLineWidth * 2;
-        float tkCenterX = mModel.getTkCenterX() + tkWidth / 2;
+        float tkCenterX = mModel.getTkCenterX() <= 0 ? (mModel.getTkCenterX() + tkWidth / 2) : mModel.getTkCenterX();
         //因为初始的时候中心点应该为 tkWidth / 2
-        tkCenterX = (tkCenterX + tkWidth / 2) > gameWidth ? (gameWidth - tkWidth / 2) : tkCenterX;
-        float tkCenterY = gameHeight - mModel.getTkCenterY() - tkHeight / 2;
-        tkCenterY = tkCenterY < 0 ? (tkHeight / 2) : tkCenterY;
+        float tkCenterY = mModel.getTkCenterY() <= 0 ? (gameHeight - mModel.getTkCenterY() - tkHeight / 2) : mModel.getTkCenterY();
+        tkCenterY = (tkCenterY + tkHeight / 2 >= gameHeight) ? (gameHeight - tkHeight / 2) : tkCenterY;
         mPaint.setColor(getColor(mModel.getTkColor()));
         mPaint.setStrokeWidth(tkLineWidth);
         mPaint.setStyle(Paint.Style.STROKE);
@@ -225,19 +232,22 @@ public class TkBaseView extends View {
         //记录炮口的位置
         mModel.setTkBulletX(tkCenterX);
         mModel.setTkBulletY(tkCenterY + tkHeight / 2);
+        //记录中心坐标点
+        mModel.setTkCenterX(tkCenterX);
+        mModel.setTkCenterY(tkCenterY);
     }
 
     //画TK(Right)
-    private void drawRightTK(TkModel mModel) {
+    private void drawRightTK(TkEntity mModel) {
         mModel.setPhoneHeight(gameHeight);
         mModel.setPhoneWidth(gameWidth);
         float tkLineWidth = mModel.getTkLineWidth();
         float tkHeight = mModel.getTkHeight() - tkLineWidth * 2;
         float tkWidth = mModel.getTkWidth() - tkLineWidth * 2;
-        float tkCenterX = mModel.getTkCenterX() + tkWidth / 2;
-        tkCenterX = tkCenterX > gameWidth ? (gameWidth - tkWidth / 2) : tkCenterX;
-        float tkCenterY = gameHeight - mModel.getTkCenterY() - tkHeight / 2;
-        tkCenterY = tkCenterY < 0 ? (tkHeight / 2) : tkCenterY;
+        float tkCenterX = mModel.getTkCenterX() <= 0 ? (gameWidth - mModel.getTkCenterX() - tkHeight / 2) : mModel.getTkCenterX();
+        tkCenterX = tkCenterX + tkWidth / 2 >= gameWidth ? (gameWidth - tkWidth / 2) : tkCenterX;
+        float tkCenterY = mModel.getTkCenterY() <= 0 ? (mModel.getTkCenterY() + tkWidth / 2) : mModel.getTkCenterY();
+
         mPaint.setColor(getColor(mModel.getTkColor()));
         mPaint.setStrokeWidth(tkLineWidth);
         mPaint.setStyle(Paint.Style.STROKE);
@@ -274,22 +284,23 @@ public class TkBaseView extends View {
         //记录炮口的位置
         mModel.setTkBulletX(tkCenterX - tkWidth / 2 + bHeight / 2);
         mModel.setTkBulletY(tkCenterY + tkHeight / 2 - tkWidth / 2);
+        //记录中心坐标点
+        mModel.setTkCenterX(tkCenterX);
+        mModel.setTkCenterY(tkCenterY);
     }
 
-    private void drawLeftTK(TkModel mModel) {
+    private void drawLeftTK(TkEntity mModel) {
         mModel.setPhoneHeight(gameHeight);
         mModel.setPhoneWidth(gameWidth);
         float tkLineWidth = mModel.getTkLineWidth();
         float tkHeight = mModel.getTkHeight() - tkLineWidth * 2;
         float tkWidth = mModel.getTkWidth() - tkLineWidth * 2;
-        float tkCenterX = mModel.getTkCenterX() + tkWidth / 2;
-        tkCenterX = tkCenterX > gameWidth ? (gameWidth - tkWidth / 2) : tkCenterX;
-        float tkCenterY = gameHeight - mModel.getTkCenterY() - tkHeight / 2;
-        tkCenterY = tkCenterY < 0 ? (tkHeight / 2) : tkCenterY;
+        float tkCenterX = mModel.getTkCenterX() <= 0 ? (gameWidth - mModel.getTkCenterX() - tkHeight / 2) : mModel.getTkCenterX();
+        tkCenterX = tkCenterX <= tkWidth / 2 ? tkWidth / 2 : tkCenterX;
+        float tkCenterY = mModel.getTkCenterY() <= 0 ? (mModel.getTkCenterY() + tkWidth / 2) : mModel.getTkCenterY();
         mPaint.setColor(getColor(mModel.getTkColor()));
         mPaint.setStrokeWidth(tkLineWidth);
         mPaint.setStyle(Paint.Style.STROKE);
-
         //整个大炮的占位
         Path tk = new Path();
 
@@ -321,26 +332,34 @@ public class TkBaseView extends View {
         //记录炮口的位置
         mModel.setTkBulletX(tkCenterX - tkWidth / 2);
         mModel.setTkBulletY(tkCenterY + tkHeight / 2 - tkWidth / 2);
+        //记录中心坐标点
+        mModel.setTkCenterX(tkCenterX);
+        mModel.setTkCenterY(tkCenterY);
     }
 
     //画子弹
     public void drawBullet() {
-        for (TkModel tkModel : npcModels) {
-            drawBullet(tkModel);
+        for (TkEntity tkEntity : npcModels) {
+            drawBullet(tkEntity);
         }
     }
 
     //子弹的位置跟随坦克的管子 根据定义的方向进行绘制
     //将最大子弹数目*2是为了后面 %2 过滤出一半的数目，最终目的是为了得到1，3，5，7，9类似有间隔的数字
     //让子弹之间看起来有间距层次感 同时总子弹数目也符合 maxBulletCount 的数目
-    private void drawBullet(TkModel tkModel) {
-        if (tkModel == null) return;
+    private void drawBullet(TkEntity tkEntity) {
+        //没有模型的话不开始游戏
+        if (tkEntity == null) return;
+        //暂停游戏
+        if (tkEntity.isPauseGame()) return;
+        //没有画布就不绘制
+        if (mCanvas == null) return;
         //画玩家的子弹
-        List<BullectModel> bullects = mPlayerModel1.getBullects();
+        List<BullectEntity> bullects = mPlayerModel1.getBullects();
         if (bullects == null) return;
-        Iterator<BullectModel> iterator = bullects.iterator();
+        Iterator<BullectEntity> iterator = bullects.iterator();
         while (iterator.hasNext()) {
-            BullectModel next = iterator.next();
+            BullectEntity next = iterator.next();
             switch (next.getDirect()) {
                 case UP:
                     mCanvas.drawLine(next.getStartX(), next.getStartY() + bulletSpace, next.getStopX(), next.getStopY(), mPaint);
@@ -369,7 +388,7 @@ public class TkBaseView extends View {
             }
         }
 
-//        for (BullectModel next : bullects) {
+//        for (BullectEntity next : bullects) {
 //            switch (next.getDirect()) {
 //                case UP:
 //                    mCanvas.drawLine(next.getStartX(), next.getStartY() + bulletSpace, next.getStopX(), next.getStopY(), mPaint);
@@ -399,7 +418,7 @@ public class TkBaseView extends View {
         //从屏幕中间绘制五角星
         mCanvas.drawPath(path, mPaint);
         Rect rect = new Rect(gameWidth / 3, gameHeight - gameWidth / 3, gameWidth * 2 / 3, gameHeight);
-//        mCanvas.drawBitmap(mHome, rect, rect, mPaint);
+        mCanvas.drawBitmap(mHome, null, rect, mPaint);
     }
 
 //
