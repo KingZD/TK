@@ -2,6 +2,7 @@ package com.example.tk.ui.activity;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -14,13 +15,18 @@ import com.example.tk.BluetoothService;
 import com.example.tk.Constants;
 import com.example.tk.R;
 import com.example.tk.base.BaseActivity;
+import com.example.tk.entity.BluetoothDeviceInfo;
+import com.example.tk.listener.BlueToothConnectCallback;
 import com.example.tk.type.GameType;
+import com.example.tk.util.BluetoothUtil;
 import com.example.tk.util.LogUtils;
 import com.example.tk.util.ToastUtils;
 
+import java.io.IOException;
+import java.util.List;
+
 public class BluetoothActivity extends BaseActivity implements ServiceConnection {
     BluetoothService.BluetoothBinder binder;
-    private BluetoothAdapter mBluetoothAdapter;
 
     @Override
     protected int getLayoutId() {
@@ -29,9 +35,8 @@ public class BluetoothActivity extends BaseActivity implements ServiceConnection
 
     @Override
     protected void initView(@Nullable Bundle savedInstanceState) {
-        if (mBluetoothAdapter == null)
-            mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null) {
+        BluetoothAdapter bluetoothAdapter = BluetoothUtil.getInstance().openBluetooth(this);
+        if (bluetoothAdapter == null) {
             // 设备不支持蓝牙功能
             LogUtils.w("设备不支持蓝牙");
             ToastUtils.showShort("设备不支持蓝牙");
@@ -40,21 +45,67 @@ public class BluetoothActivity extends BaseActivity implements ServiceConnection
         }
         //绑定service
         bindService(new Intent(this, BluetoothService.class), this, Context.BIND_AUTO_CREATE);
-        //未启用蓝牙则开启
-        if (!mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, Constants.REQUEST_ENABLE_BT);
-            // 不做提示，强行打开
-            // mBluetoothAdapter.enable();
-        } else {
+        if (bluetoothAdapter.isEnabled()) {
             //蓝牙开启
             startActivity(new Intent(this, GameActivity.class));
         }
     }
 
+
+    //////////////////////////////////////////////////////////创建者/////////////////////////////////////////////////////////////////////////////////
     //创建蓝牙客户端
-    private void createBluetoothClient(){
+    private void createBluetoothClient() {
 //        mBluetoothAdapter.listenUsingRfcommWithServiceRecord()
+    }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
+//////////////////////////////////////////////////////////加入者/////////////////////////////////////////////////////////////////////////////////
+
+    //寻找已经创建的游戏
+    private void findExistsGame() {
+        BluetoothUtil.getInstance().setOnFoundUnBondDeviceListener(new BluetoothUtil.OnFoundUnBondDeviceListener() {
+            @Override
+            public void foundUnBondDevice(BluetoothDevice unBondDevice) {
+                LogUtils.d(unBondDevice.getName(), unBondDevice.getAddress());
+            }
+        });
+    }
+
+    //连接一个存在的房间
+    private void connectGame(String macAddress) {
+        showLoading("正在连接..");
+        macAddress = macAddress.split("\\|")[1];
+        BluetoothUtil.getInstance().connectRemoteDevice(macAddress, new BlueToothConnectCallback() {
+            @Override
+            public void connecting(String serverBlueToothAddress) {
+
+            }
+
+            @Override
+            public void connectSuccess(String serverBlueToothAddress) {
+                dismissLoading();
+                ToastUtils.showShort("连接成功");
+            }
+
+            @Override
+            public void connectFailure(Exception e) {
+                dismissLoading();
+                ToastUtils.showShort("连接失败..");
+            }
+        });
+    }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        List<BluetoothDeviceInfo> bluetoothDeviceInfoList = BluetoothUtil.getInstance().scanDevice();
+        for (BluetoothDeviceInfo bluetoothDeviceInfo : bluetoothDeviceInfoList) {
+            LogUtils.d(bluetoothDeviceInfo.toString());
+        }
     }
 
     @Override
@@ -85,6 +136,7 @@ public class BluetoothActivity extends BaseActivity implements ServiceConnection
     @Override
     protected void onDestroy() {
         unbindService(this);
+        BluetoothUtil.getInstance().unregisterReceiver(this);
         super.onDestroy();
     }
 

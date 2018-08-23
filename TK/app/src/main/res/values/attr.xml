@@ -4,4 +4,13 @@
         <attr name="mPressColor" format="color" />
         <attr name="mNormalColor" format="color" />
     </declare-styleable>
+
+    <declare-styleable name="LoopScaleView">
+        <!--指针颜色-->
+        <attr name="cursorColor" format="color" />
+        <!--刻度文字颜色-->
+        <attr name="scaleTextColor" format="color" />
+        <!--指针图标，颜色和这个属性二选一-->
+        <attr name="cursorMap" format="reference" />
+    </declare-styleable>
 </resources>

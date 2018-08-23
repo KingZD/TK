@@ -10,4 +10,5 @@
 
 
     <item name="transparent" type="drawable">#00000000</item>
+    <color name="main_blue">#3399ff</color>
 </resources>

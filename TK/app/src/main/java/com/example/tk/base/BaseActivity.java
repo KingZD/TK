@@ -32,6 +32,10 @@ public abstract class BaseActivity extends AppCompatActivity {
         showLoading("", null);
     }
 
+    protected void showLoading(String content) {
+        showLoading(content, null);
+    }
+
     protected void showLoading(String content, DialogInterface.OnCancelListener cancelListener) {
         if (mLoadDialog == null) {
             mLoadDialog = new LoadingDialog(this, R.style.dialog, content);
