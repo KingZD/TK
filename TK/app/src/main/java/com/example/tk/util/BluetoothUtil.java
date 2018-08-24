@@ -47,11 +47,20 @@ public class BluetoothUtil {
 
     ///////////////////////////////////////////////////////////////////////////
     private String serverBlueToothAddress;  //连接蓝牙地址
-    private BluetoothSocket socket = null; // 客户端socket
+    private BluetoothSocket clientSocket = null; // 客户端socket
+    private BluetoothServerSocket serverSocket = null;//服务器socket
     private BluetoothAdapter mBluetoothAdapter;
 
-    public BluetoothAdapter openBluetooth(Activity activity) {
-        registerBluetoothScanReceiver(activity);
+    /**
+     * 开启蓝牙
+     *
+     * @param activity
+     * @param isServer
+     * @return
+     */
+    public BluetoothAdapter openBluetooth(Activity activity, boolean isServer) {
+        if (!isServer)
+            registerBluetoothScanReceiver(activity);
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (null != mBluetoothAdapter) { //本地蓝牙存在...
             if (!mBluetoothAdapter.isEnabled()) { //判断蓝牙是否被打开...
@@ -79,18 +88,50 @@ public class BluetoothUtil {
         return mBluetoothAdapter;
     }
 
-
-    public void createBluetoothServer() {
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        BluetoothServerSocket tmp = null;
-        try {
-            // MY_UUID is the app's UUID string, also used by the client code
-            tmp = mBluetoothAdapter.listenUsingRfcommWithServiceRecord("GAME", UUID.fromString(Constants.SPP_UUID));
-        } catch (IOException e) {
-            LogUtils.d(e.getLocalizedMessage());
-        }
-//        mmServerSocket = tmp;
+    //创建蓝牙服务器
+    public void createBluetoothServer(ReceivedMessageListener listener) {
+        ThreadPoolUtils.execute(new ServerThread(listener));
     }
+
+    // 开启服务器
+    private class ServerThread extends Thread {
+        ReceivedMessageListener listener;
+
+        public ServerThread(ReceivedMessageListener listener) {
+            this.listener = listener;
+        }
+
+        public void run() {
+            try {
+                // 创建一个蓝牙服务器 参数分别：服务器名称、UUID
+                LogUtils.d("准备创建蓝牙服务器");
+                // MY_UUID is the app's UUID string, also used by the client code
+                serverSocket = mBluetoothAdapter.listenUsingRfcommWithServiceRecord("TK-ONE", UUID.fromString(Constants.SPP_UUID));
+                LogUtils.d("正在创建蓝牙服务器");
+
+                /* 接受客户端的连接请求 */
+                clientSocket = serverSocket.accept();
+                LogUtils.d("创建蓝牙服务成功");
+
+                MainHandler.getInstance().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        listener.onConnectedSuccess();
+                    }
+                });
+                ThreadPoolUtils.execute(new ReadRunnable(listener));
+            } catch (final IOException e) {
+                e.printStackTrace();
+                MainHandler.getInstance().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        listener.onConnectionInterrupt(e);
+                    }
+                });
+            }
+        }
+    }
+
 
     /**
      * 扫描设备 onResume()中执行.连接页面调用
@@ -126,17 +167,17 @@ public class BluetoothUtil {
     /**
      * 通过Mac地址去尝试连接一个设备.连接页面调用
      */
-    public void connectRemoteDevice(final String serverBlueToothAddress, BlueToothConnectCallback connectInterface) {
+    public void connectRemoteDevice(final String serverBlueToothAddress, BlueToothConnectCallback connectInterface, ReceivedMessageListener listener) {
         this.serverBlueToothAddress = serverBlueToothAddress;
         final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(serverBlueToothAddress);
-        ThreadPoolUtils.execute(new ConnectRunnable(device, connectInterface));
+        ThreadPoolUtils.execute(new ConnectRunnable(device, connectInterface, listener));
     }
 
     /**
      * 广播反注册.连接页面调用
      */
     public void unregisterReceiver(Activity activity) {
-        if (receiver != null && receiver.getAbortBroadcast()) {
+        if (receiver != null) {
             activity.unregisterReceiver(receiver);
         }
     }
@@ -145,9 +186,12 @@ public class BluetoothUtil {
      * 发送消息,在通信页面使用
      */
     public void sendMessage(String message) {
+        LogUtils.i("sendMessage", message);
+        if (!isConnected()) return;
         try {
-            writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
             writer.write(message + "\n");
+//            writer.write(message);
             writer.flush();
         } catch (IOException e) {
             e.printStackTrace();
@@ -157,13 +201,6 @@ public class BluetoothUtil {
     /**
      * 收到消息的监听事件,在通信页面注册这个事件
      */
-    public void setOnReceivedMessageListener(ReceivedMessageListener listener) {
-        if (listener != null) {
-            // 可以开启读数据线程
-            //     MainHandler.getInstance().post(new ReadRunnable(listener));
-            ThreadPoolUtils.execute(new ReadRunnable(listener));
-        }
-    }
 
     /**
      * 关闭蓝牙,在app退出时调用
@@ -174,7 +211,7 @@ public class BluetoothUtil {
             // 关闭蓝牙
             mBluetoothAdapter.disable();
         }
-        closeCloseable(writer, socket);
+        closeCloseable(writer, clientSocket);
     }
 
     /**
@@ -183,27 +220,33 @@ public class BluetoothUtil {
     class ConnectRunnable implements Runnable {
         private BluetoothDevice device; // 蓝牙设备
         private BlueToothConnectCallback connectInterface;
+        private ReceivedMessageListener listener;
 
-        public ConnectRunnable(BluetoothDevice device, BlueToothConnectCallback connectInterface) {
+        public ConnectRunnable(BluetoothDevice device, BlueToothConnectCallback connectInterface, ReceivedMessageListener listener) {
             this.device = device;
             this.connectInterface = connectInterface;
+            this.listener = listener;
         }
 
         @Override
         public void run() {
             if (null != device) {
                 try {
-                    if (socket != null) {
-                        closeCloseable(socket);
+                    if (clientSocket != null) {
+                        closeCloseable(clientSocket);
                     }
 //                    socket = device.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
-                    socket = device.createInsecureRfcommSocketToServiceRecord(UUID.fromString(Constants.SPP_UUID));
+                    clientSocket = device.createInsecureRfcommSocketToServiceRecord(UUID.fromString(Constants.SPP_UUID));
                     // 连接
                     LogUtils.d(TAG, "正在连接 " + serverBlueToothAddress);
-                    connectInterface.connecting(serverBlueToothAddress);
-//                    Message.obtain(handler, MESSAGE_TYPE_SEND, "请稍候，正在连接服务器: " + serverBlueToothAddress).sendToTarget();
+                    MainHandler.getInstance().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            connectInterface.connecting(serverBlueToothAddress);
+                        }
+                    });
 
-                    socket.connect();
+                    clientSocket.connect();
                     MainHandler.getInstance().post(new Runnable() {
                         @Override
                         public void run() {
@@ -211,13 +254,8 @@ public class BluetoothUtil {
                             LogUtils.d(TAG, "连接 " + serverBlueToothAddress + " 成功 ");
                         }
                     });
-                    // 如果实现了连接，那么服务端和客户端就共享一个RFFCOMM信道...
-//                    Message.obtain(handler, MESSAGE_TYPE_SEND, "已经连接上服务端！可以发送信息").sendToTarget();
-                    // 如果连接成功了...这步就会执行...更新UI界面...否则走catch（IOException e）
-//                    Message.obtain(handler, MESSAGE_ID_REFRESH_UI).sendToTarget();
 
-                    // 屏蔽点击事件
-//                    listViewMessage.setOnItemClickListener(null);
+                    ThreadPoolUtils.execute(new ReadRunnable(listener));
                 } catch (final IOException e) {
                     MainHandler.getInstance().post(new Runnable() {
                         @Override
@@ -241,9 +279,12 @@ public class BluetoothUtil {
         }
 
         public void run() {
+            LogUtils.i("准备读取数据");
+            if (!isConnected()) return;
+            LogUtils.i("开始读取数据");
             BufferedReader reader = null;
             try {
-                reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 String content;
                 while (!TextUtils.isEmpty(content = reader.readLine())) {
                     final String finalContent = content;
@@ -253,8 +294,18 @@ public class BluetoothUtil {
                             listener.onReceiveMessage(finalContent);
                         }
                     });
-//                    Message.obtain(handler, MESSAGE_TYPE_RECEIVED, content).sendToTarget();
                 }
+//                final StringBuffer temp = new StringBuffer();
+//                int c = 0;
+//                while ((c = reader.read()) != -1) {
+//                    temp.append((char) c);
+//                }
+//                MainHandler.getInstance().post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        listener.onReceiveMessage(temp.toString());
+//                    }
+//                });
             } catch (final IOException e) {
                 MainHandler.getInstance().post(new Runnable() {
                     @Override
@@ -263,11 +314,15 @@ public class BluetoothUtil {
                         listener.onConnectionInterrupt(e);
                     }
                 });
-                // 连接断开
-//                Message.obtain(handler, MESSAGE_ID_DISCONNECT).sendToTarget();
             }
             closeCloseable(reader);
         }
+    }
+
+    public boolean isConnected() {
+        if (clientSocket == null)
+            return false;
+        return clientSocket.isConnected();
     }
 
     private BroadcastReceiver registerBluetoothScanReceiver(Activity activity) {

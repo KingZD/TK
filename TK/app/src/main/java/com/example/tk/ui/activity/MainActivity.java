@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.widget.Button;
 
 import com.example.tk.base.BaseActivity;
+import com.example.tk.type.GameType;
 import com.example.tk.ui.widget.DirectButton;
 import com.example.tk.R;
 import com.example.tk.type.TKDirect;

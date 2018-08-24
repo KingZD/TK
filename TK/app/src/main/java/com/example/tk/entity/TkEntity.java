@@ -2,21 +2,18 @@ package com.example.tk.entity;
 
 import android.graphics.Rect;
 
+import com.example.tk.type.Player;
 import com.example.tk.type.TKDirect;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * 定义坦克模型
  */
-public class TkEntity {
+public class TkEntity implements Serializable{
 
-
-    public enum Player {
-        //玩家一 玩家二 电脑
-        PLAYER1, PLAYER2, NPC
-    }
-
+    public static String FLAG = "TkEntity";
     //定义坦克行驶方向和子弹弹射方向
     private TKDirect direct = TKDirect.UP;
     //子弹移动速度

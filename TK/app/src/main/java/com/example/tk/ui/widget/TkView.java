@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 
 import com.example.tk.entity.BullectEntity;
+import com.example.tk.listener.GameDataChangeListener;
 import com.example.tk.util.LogUtils;
 import com.example.tk.R;
 import com.example.tk.type.TKDirect;
@@ -17,7 +18,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.example.tk.type.Player;
+import com.google.gson.Gson;
+
 public class TkView extends TkBaseView {
+    private GameDataChangeListener listener;
     protected final int CREATE_NPC = 0;
     protected final int CREATE_PLAYER = 1;
     //改变子弹的位置
@@ -28,6 +33,8 @@ public class TkView extends TkBaseView {
     protected final int CHECK_BULLECT = 4;
     //检测子弹板砖之间的碰撞
     protected final int CHECK_BULLECT_BRICK = 5;
+    //同步数据
+    protected final int UPDATE_GAME = 6;
 
 
     public TkView(Context context) {
@@ -49,9 +56,9 @@ public class TkView extends TkBaseView {
 
     //随机生成坦克
     private void randomGenerationTK() {
-        TkEntity npc1 = new TkEntity(TKDirect.DOWN, tkWidth, tkHeight, 0.2f, 0, tkHeight / 2, 5, R.color.colorPrimary, TkEntity.Player.NPC);
-        TkEntity npc2 = new TkEntity(TKDirect.DOWN, tkWidth, tkHeight, 0.2f, gameWidth / 2, tkHeight / 2, 5, R.color.colorPrimary, TkEntity.Player.NPC);
-        TkEntity npc3 = new TkEntity(TKDirect.DOWN, tkWidth, tkHeight, 0.2f, gameWidth - tkWidth / 2, tkHeight / 2, 5, R.color.colorPrimary, TkEntity.Player.NPC);
+        TkEntity npc1 = new TkEntity(TKDirect.DOWN, tkWidth, tkHeight, 0.2f, 0, tkHeight / 2, 5, R.color.colorPrimary, Player.NPC);
+        TkEntity npc2 = new TkEntity(TKDirect.DOWN, tkWidth, tkHeight, 0.2f, gameWidth / 2, tkHeight / 2, 5, R.color.colorPrimary, Player.NPC);
+        TkEntity npc3 = new TkEntity(TKDirect.DOWN, tkWidth, tkHeight, 0.2f, gameWidth - tkWidth / 2, tkHeight / 2, 5, R.color.colorPrimary, Player.NPC);
         npcModels.add(npc1);
         npcModels.add(npc2);
         npcModels.add(npc3);
@@ -61,9 +68,15 @@ public class TkView extends TkBaseView {
     /*************************************玩家1控制************************************************/
     //创建玩家1
     private void createPlayer1() {
-        mPlayerModel1 = new TkEntity(TKDirect.UP, tkWidth, tkHeight, 0.2f, tkWidth, 0, 5, R.color.colorPrimary, TkEntity.Player.PLAYER1);
+        mPlayerModel1 = new TkEntity(TKDirect.UP, tkWidth, tkHeight, 0.2f, tkWidth, 0, 5, R.color.colorPrimary, Player.PLAYER1);
         //初始化子彈集合
         mPlayerModel1.setBullects(new ArrayList<BullectEntity>());
+        invalidate();
+    }
+
+    public void updatePlayer1(TkEntity tkEntity) {
+        if (tkEntity == null) return;
+        mPlayerModel1 = tkEntity;
         invalidate();
     }
 
@@ -85,7 +98,7 @@ public class TkView extends TkBaseView {
     /*************************************玩家2控制************************************************/
     //创建玩家2
     private void createPlayer2() {
-        mPlayerModel2 = new TkEntity(TKDirect.UP, tkWidth, tkHeight, 0.2f, gameWidth - tkWidth * 2, 0, 5, R.color.colorPrimary, TkEntity.Player.PLAYER2);
+        mPlayerModel2 = new TkEntity(TKDirect.UP, tkWidth, tkHeight, 0.2f, gameWidth - tkWidth * 2, 0, 5, R.color.colorPrimary, Player.PLAYER2);
         invalidate();
     }
 
@@ -105,6 +118,7 @@ public class TkView extends TkBaseView {
         gameHandler.sendEmptyMessage(CHECK_BULLECT);
         gameHandler.sendEmptyMessage(CHECK_BULLECT_BRICK);
         gameHandler.sendEmptyMessage(CHECK_BULLECT_TK);
+        gameHandler.sendEmptyMessage(UPDATE_GAME);
     }
 
 
@@ -183,7 +197,7 @@ public class TkView extends TkBaseView {
             Iterator<BullectEntity> iterator = bullects.iterator();
             while (iterator.hasNext()) {
                 BullectEntity next = iterator.next();
-                boolean b = nextTk.getTkRect().contains(next.getBullectRect(gameHeight, gameWidth, bulletSpace, nextTk.getTkLineWidth()));
+                boolean b = nextTk.getTkRect().contains(next.getBullectRect(bulletSpace, nextTk.getTkLineWidth()));
                 LogUtils.i(nextTk.getTkRect());
                 if (b) {//如果子弹在坦克范围内则 打中坦克，子弹移除 移除坦克
                     iterator.remove();
@@ -251,7 +265,17 @@ public class TkView extends TkBaseView {
                     gameHandler.sendEmptyMessageDelayed(CHECK_BULLECT_BRICK, 40);
                     checkBulletBrickCollision();
                     break;
+                case UPDATE_GAME:
+                    if (listener != null) {
+                        listener.dataChange(new Gson().toJson(mPlayerModel1));
+                        gameHandler.sendEmptyMessageDelayed(UPDATE_GAME, 20);
+                    }
+                    break;
             }
         }
     };
+
+    public void setListener(GameDataChangeListener listener) {
+        this.listener = listener;
+    }
 }

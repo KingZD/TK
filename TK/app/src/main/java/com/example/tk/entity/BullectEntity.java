@@ -63,16 +63,16 @@ public class BullectEntity {
         this.stopY = stopY;
     }
 
-    public Rect getBullectRect(int gameHeight, int gameWidth, int btHeight, int btWidth) {
+    public Rect getBullectRect(int btHeight, int btWidth) {
         Rect rect = new Rect();
         switch (direct) {
             case UP:
             case DOWN:
-                rect.set((int) (startX), (int) (gameHeight - startY), (int) (stopX + btWidth), (int) (gameHeight - stopY - btHeight));
+                rect.set((int) (startX), (int) (startY + btHeight), (int) (stopX + btWidth), (int) (stopY));
                 break;
             case RIGHT:
             case LEFT:
-                rect.set((int) (gameWidth - startX), (int) (startY), (int) (gameWidth - stopX - btHeight), (int) (stopY + btWidth));
+                rect.set((int) (startX + btHeight), (int) (startY), (int) (stopX), (int) (stopY + btWidth));
                 break;
         }
         LogUtils.i(startX, startY, stopX, stopY, rect);

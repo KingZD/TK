@@ -6,6 +6,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
+import com.example.tk.listener.GameDataChangeListener;
 import com.example.tk.util.LogUtils;
 
 public class BluetoothService extends Service {
@@ -46,6 +47,11 @@ public class BluetoothService extends Service {
 
 
     public class BluetoothBinder extends Binder {
-
+        public void setPlayListener(GameDataChangeListener listener){
+            mPlayer1listener = listener;
+        }
     }
+
+    private GameDataChangeListener mPlayer1listener;
+
 }
