@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
@@ -63,11 +64,14 @@ public class RuleView extends View {
     //设置刻度线间宽度,大小由 showItemSize确定
     private int scaleDistance;
     //刻度高度，默认值为40
-    private float scaleHeight = 20;
+    private float scaleHeight = 40;
     //刻度的颜色刻度色，默认为灰色
     private int lineColor = Color.GRAY;
     //刻度文字的颜色，默认为灰色
     private int scaleTextColor = Color.GRAY;
+    //指示器颜色
+    private int indicatorColor = Color.parseColor("#ffff00");
+
     //刻度文字的大小,默认为14sp
     private int scaleTextSize = 14;
     //手势解析器
@@ -90,7 +94,7 @@ public class RuleView extends View {
     //当前指针所在位置
     private int currCursorIndex = 0;
     //默认指示器宽高
-    int defWidthCursor = 40;
+    int defWidthCursor = 20;
     int defHeightCursor = 80;
     //时间格式
     String fmt = "yyyy-MM-dd HH:mm:ss";
@@ -102,10 +106,10 @@ public class RuleView extends View {
     private long time;
     //所有绘制图案距离顶部的距离
     private float marginTopHeight = 10;
-    //所有绘制图案距离底部的距离
-    private float marginButtonHeight = 0;
-    //底部蓝色区域和时间之间的间隔
-    private float buttonBlueSplit = 0;
+    //顶部蓝色区域和时间之间的间隔
+    private float topBlueSplit = 0;
+    //蓝色区域的绘制区域
+    private float blueWidth = 60;
     private float mCurrentY = 0, mCurrentX = 0;
 
     //时间段数据
@@ -114,19 +118,7 @@ public class RuleView extends View {
         add(new RuleBean("2018-05-08 14:13:19", 4 * 60 * 60 * 1000));
         add(new RuleBean("2018-06-08 19:43:44", 2 * 60 * 60 * 1000));
         add(new RuleBean("2018-07-04 08:33:59", 6 * 60 * 60 * 1000));
-        add(new RuleBean("2018-07-04 08:33:59", 6 * 60 * 60 * 1000));
-        add(new RuleBean("2018-07-04 08:33:59", 6 * 60 * 60 * 1000));
-        add(new RuleBean("2018-07-04 08:33:59", 6 * 60 * 60 * 1000));
-        add(new RuleBean("2018-07-04 08:33:59", 6 * 60 * 60 * 1000));
-        add(new RuleBean("2018-07-04 08:33:59", 6 * 60 * 60 * 1000));
-        add(new RuleBean("2018-07-04 08:33:59", 6 * 60 * 60 * 1000));
-        add(new RuleBean("2018-07-04 08:33:59", 6 * 60 * 60 * 1000));
-        add(new RuleBean("2018-07-04 08:33:59", 6 * 60 * 60 * 1000));
-        add(new RuleBean("2018-07-04 08:33:59", 6 * 60 * 60 * 1000));
-        add(new RuleBean("2018-07-04 08:33:59", 6 * 60 * 60 * 1000));
-        add(new RuleBean("2018-07-04 08:33:59", 6 * 60 * 60 * 1000));
-        add(new RuleBean("2018-07-04 08:33:59", 6 * 60 * 60 * 1000));
-        add(new RuleBean("2018-07-04 08:33:59", 6 * 60 * 60 * 1000));
+        add(new RuleBean("2018-07-05 17:13:00", 3 * 60 * 60 * 1000));
     }};
     //
     private int RULE_SCROLL = 0;
@@ -208,7 +200,6 @@ public class RuleView extends View {
         loopCount = dates == null ? 0 : dates.size();
         canvas.clipRect(getPaddingStart(), getPaddingTop(), getWidth() - getPaddingRight(), viewHeight - getPaddingBottom());
         cursorLocation = showItemSize / 2 * 5 * scaleDistance; //屏幕显示Item 数的中间位置
-//        drawCursorTime(canvas);
         for (int k = 0; k < loopCount; k++) {
             String mDate = dates.get(k).getDate();
             long time = dates.get(k).getTime();
@@ -221,10 +212,12 @@ public class RuleView extends View {
                     location += k * dateSplitWidth;
                 drawScale(canvas, mDate, time, i, location);
             }
-            drawLine(canvas);
-            drawCursor(canvas);
-//            drawBlueRect(canvas, k);
+            drawBlueRect(canvas, k);
         }
+        drawLine(canvas);
+        drawCursorTimeTop(canvas);
+        drawCursorTime(canvas);
+        drawCursorTimeButton(canvas);
     }
 
     /**
@@ -239,25 +232,33 @@ public class RuleView extends View {
     }
 
     /**
-     * 绘制指示标签
+     * 绘制指示标签上部
      *
      * @param canvas 绘制控件的画布
      */
-    private void drawCursor(Canvas canvas) {
+    private void drawCursorTimeTop(Canvas canvas) {
+        if (cursorMap == null) { //绘制一条红色的竖线线
+            paint.setStrokeWidth(cursorWidth * 2);
+            paint.setColor(indicatorColor);
+            mCurrentY += defHeightCursor;
+            canvas.drawLine(cursorLocation, mCurrentY - defHeightCursor - scaleHeight, cursorLocation, mCurrentY, paint);
+        } else { //绘制标识图片
+            canvas.drawBitmap(cursorMap, cursorLocation - cursorMap.getWidth() / 2, viewHeight - cursorMap.getHeight() - (dateHeight + dateSplitHeight) * 2 - getPaddingBottom(), paint);
+        }
+    }
+
+    /**
+     * 绘制指示标签下部
+     *
+     * @param canvas 绘制控件的画布
+     */
+    private void drawCursorTimeButton(Canvas canvas) {
         if (cursorMap == null) { //绘制一条红色的竖线线
             paint.setStrokeWidth(cursorWidth);
-            paint.setColor(lineColor);
-            //三角形指示器
-//            Path path = new Path();
-//            path.moveTo(cursorLocation + defWidthCursor / 2, viewHeight - getPaddingTop() - (dateHeight + dateSplitHeight) * 2 - getPaddingBottom() - defHeightCursor - marginButtonHeight);
-//            path.lineTo(cursorLocation - defWidthCursor / 2, viewHeight - getPaddingTop() - (dateHeight + dateSplitHeight) * 2 - getPaddingBottom() - defHeightCursor - marginButtonHeight);
-//            path.lineTo(cursorLocation, viewHeight - (dateHeight + dateSplitHeight) * 2 - getPaddingBottom() - marginButtonHeight);
-//            path.close();
-//            canvas.drawPath(path, paint);
-            mCurrentY += defHeightCursor;
-            canvas.drawLine(cursorLocation, mCurrentY - defHeightCursor, cursorLocation, mCurrentY, paint);
+            paint.setColor(indicatorColor);
+            canvas.drawRect(new RectF(cursorLocation - defWidthCursor / 2, mCurrentY - boundsALL.height() / 2, cursorLocation + defWidthCursor / 2, viewHeight), paint);
         } else { //绘制标识图片
-            canvas.drawBitmap(cursorMap, cursorLocation - cursorMap.getWidth() / 2, viewHeight - cursorMap.getHeight() - (dateHeight + dateSplitHeight) * 2 - getPaddingBottom() - marginButtonHeight, paint);
+            canvas.drawBitmap(cursorMap, cursorLocation - cursorMap.getWidth() / 2, viewHeight - cursorMap.getHeight() - (dateHeight + dateSplitHeight) * 2 - getPaddingBottom(), paint);
         }
     }
 
@@ -268,13 +269,13 @@ public class RuleView extends View {
      */
     private void drawCursorTime(Canvas canvas) {
         if (TextUtils.isEmpty(mCursorDate)) return;
-        paint.setColor(cursorColor);
+        paint.setColor(lineColor);
         paint.setTextSize(scaleTextSize);
+        mCurrentY = mCurrentY + marginTopHeight * 2 + blueWidth;
         if (cursorMap == null) { //绘制一条红色的竖线线
-            float startX = viewHeight - getPaddingTop() - (dateHeight + dateSplitHeight) * 2 - getPaddingBottom() - defHeightCursor;
-            canvas.drawText(mCursorDate, cursorLocation - boundsALL.width() / 2, startX - boundsALL.height() / 2 - marginButtonHeight, paint);
+            canvas.drawText(mCursorDate, cursorLocation - boundsALL.width() / 2, mCurrentY - boundsALL.height(), paint);
         } else {
-            canvas.drawText(mCursorDate, cursorLocation - boundsALL.width() / 2, viewHeight - cursorMap.getHeight() - dateHeight * 2 - getPaddingBottom() - 3 * dateSplitHeight - marginButtonHeight, paint);
+            canvas.drawText(mCursorDate, cursorLocation - boundsALL.width() / 2, mCurrentY + cursorMap.getHeight() + dateHeight * 2 + getPaddingBottom() + 3 * dateSplitHeight, paint);
         }
     }
 
@@ -297,13 +298,15 @@ public class RuleView extends View {
             String drawStrY = dStr[0];
             String drawStrD = dStr[1];
             mCurrentY = getPaddingTop() + boundsY.height() + marginTopHeight;
+            //不显示年注释这里
             canvas.drawText(drawStrY, location - boundsY.width() / 2, mCurrentY, paint);
             mCurrentY += boundsY.height() + dateSplitHeight;
+            //不显示时分秒注释这里
             canvas.drawText(drawStrD, location - boundsD.width() / 2, mCurrentY, paint);
-            mCurrentY += scaleHeight * 2;
-            canvas.drawLine(location, mCurrentY - scaleHeight * 2, location, mCurrentY, paint);
-        } else {
+            mCurrentY += scaleHeight;
             canvas.drawLine(location, mCurrentY - scaleHeight, location, mCurrentY, paint);
+        } else {
+            canvas.drawLine(location, mCurrentY - scaleHeight / 2, location, mCurrentY, paint);
         }
     }
 
@@ -311,14 +314,14 @@ public class RuleView extends View {
     private void drawBlueRect(Canvas canvas, int k) {
         float startX = cursorLocation + k * (maxValue * scaleDistance + dateSplitWidth) + currLocation;
         float endX = startX + maxValue * scaleDistance;
-        paint.setStrokeWidth(marginButtonHeight - buttonBlueSplit);
+        paint.setStrokeWidth(blueWidth);
         paint.setColor(timeColor);
         Path path = new Path();
-        path.moveTo(startX, viewHeight - marginButtonHeight + buttonBlueSplit);
-        path.lineTo(endX, viewHeight - marginButtonHeight + buttonBlueSplit);
-        path.lineTo(endX, viewHeight);
-        path.lineTo(startX, viewHeight);
-        path.lineTo(startX, viewHeight - marginButtonHeight + buttonBlueSplit);
+        path.moveTo(startX, mCurrentY + blueWidth + marginTopHeight);
+        path.lineTo(endX, mCurrentY + blueWidth + marginTopHeight);
+        path.lineTo(endX, mCurrentY + marginTopHeight);
+        path.lineTo(startX, mCurrentY + marginTopHeight);
+        path.lineTo(startX, mCurrentY + blueWidth + marginTopHeight);
         canvas.drawPath(path, paint);
     }
 
@@ -347,15 +350,18 @@ public class RuleView extends View {
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                //控制滑动超过距离后返回
-                if (currLocation <= -(scaleDistance * maxValue * loopCount + (loopCount - 1) * dateSplitWidth)
-                        || currLocation > 0) {
-                    float speed = mScroller.getCurrVelocity();
-                    mScroller.fling((int) currLocation, 0, (int) speed, 0, minX, maxX, 0, 0);
-                    setNextMessage(RULE_SCROLL);
-                } else {
-                    if (mScroller.isFinished())
-                        animationHandler.sendEmptyMessageDelayed(RULE_IDLE, 1000);
+                //过滤点击事件
+                if (mMove != 0) {
+                    //控制滑动超过距离后返回
+                    if (currLocation <= -(scaleDistance * maxValue * loopCount + (loopCount - 1) * dateSplitWidth)
+                            || currLocation > 0) {
+                        float speed = mScroller.getCurrVelocity();
+                        mScroller.fling((int) currLocation, 0, (int) speed, 0, minX, maxX, 0, 0);
+                        setNextMessage(RULE_SCROLL);
+                    } else {
+                        if (mScroller.isFinished())
+                            animationHandler.sendEmptyMessageDelayed(RULE_IDLE, 1000);
+                    }
                 }
                 break;
             default:
